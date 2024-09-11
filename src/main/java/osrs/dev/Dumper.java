@@ -15,8 +15,6 @@ import osrs.dev.dumper.GlobalCollisionMapWriter;
 import osrs.dev.dumper.TileExclusion;
 import osrs.dev.dumper.openrs2.OpenRS2;
 import osrs.dev.util.OptionsParser;
-
-import javax.swing.text.html.Option;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

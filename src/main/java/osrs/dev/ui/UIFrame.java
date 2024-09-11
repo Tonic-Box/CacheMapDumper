@@ -3,14 +3,12 @@ package osrs.dev.ui;
 import osrs.dev.Dumper;
 import osrs.dev.Main;
 import osrs.dev.ui.viewport.ViewPort;
+import osrs.dev.util.ImageUtil;
 import osrs.dev.util.ThreadPool;
 import osrs.dev.util.WorldPoint;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.concurrent.Future;
 
 public class UIFrame extends JFrame {
@@ -26,6 +24,7 @@ public class UIFrame extends JFrame {
     private Future<?> current;
 
     public UIFrame() {
+        setIconImage(ImageUtil.loadImageResource(UIFrame.class, "icon.png"));
         setTitle("Collision Viewer");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -168,6 +167,13 @@ public class UIFrame extends JFrame {
             }
         });
 
+        imagePanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                upButton.requestFocusInWindow();
+            }
+        });
+
         addMouseWheelListener(e -> {
             if(!canProcess())
                 return;
@@ -179,6 +185,13 @@ public class UIFrame extends JFrame {
                 int val = zoomSlider.getValue() + 10;
                 val = val < 501 ? val : 1000;
                 zoomSlider.setValue(val);
+            }
+        });
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                update();
             }
         });
     }

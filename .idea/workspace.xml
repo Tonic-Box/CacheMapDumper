@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="Fixed a bit of threadding stuff">
+    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="Reworked ui a bit">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/Dumper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/Dumper.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" afterDir="false" />
@@ -159,7 +159,15 @@
       <option name="project" value="LOCAL" />
       <updated>1726081270369</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Reworked ui a bit">
+      <option name="closed" value="true" />
+      <created>1726089433169</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1726089433169</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -171,6 +179,7 @@
     <MESSAGE value="fixed bug with zooming, wasn't recalculating center tile when we moved in cardinal directions." />
     <MESSAGE value="Cleanup" />
     <MESSAGE value="Fixed a bit of threadding stuff" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed a bit of threadding stuff" />
+    <MESSAGE value="Reworked ui a bit" />
+    <option name="LAST_COMMIT_MESSAGE" value="Reworked ui a bit" />
   </component>
 </project>
