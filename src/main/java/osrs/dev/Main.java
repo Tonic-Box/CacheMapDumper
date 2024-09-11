@@ -6,6 +6,7 @@ import osrs.dev.reader.GlobalCollisionMap;
 import osrs.dev.ui.UIFrame;
 
 import javax.swing.*;
+import java.io.IOException;
 
 public class Main
 {
@@ -15,12 +16,24 @@ public class Main
     public static void main(String[] args) throws Exception
     {
         FlatDarkLaf.setup();
-        Dumper.main(null);
-        collision = GlobalCollisionMap.load(Dumper.OUTPUT_MAP.getPath());
+        if(Dumper.OUTPUT_MAP.exists())
+        {
+            collision = GlobalCollisionMap.load(Dumper.OUTPUT_MAP.getPath());
+        }
         SwingUtilities.invokeLater(() -> {
             frame = new UIFrame();
             frame.setVisible(true);
-            frame.update();
+            if(collision != null)
+            {
+                frame.update();
+            }
         });
+    }
+
+    public static void load() throws IOException, ClassNotFoundException {
+        if(Dumper.OUTPUT_MAP.exists())
+        {
+            collision = GlobalCollisionMap.load(Dumper.OUTPUT_MAP.getPath());
+        }
     }
 }

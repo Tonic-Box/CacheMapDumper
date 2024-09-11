@@ -1,13 +1,15 @@
 package osrs.dev.ui;
 
+import osrs.dev.Dumper;
+import osrs.dev.Main;
 import osrs.dev.ui.viewport.ViewPort;
 import osrs.dev.util.WorldPoint;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class UIFrame extends JFrame {
     private final JLabel imageLabel;
@@ -87,6 +89,8 @@ public class UIFrame extends JFrame {
         });
         controlPanel.add(zoomSlider, BorderLayout.EAST);
 
+        add(controlPanel, BorderLayout.EAST);
+
         // Zoom slider
         speedSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 5);
         speedSlider.setMajorTickSpacing(5);
@@ -94,7 +98,36 @@ public class UIFrame extends JFrame {
         speedSlider.setPaintLabels(true);
         add(speedSlider, BorderLayout.NORTH);
 
-        add(controlPanel, BorderLayout.EAST);
+        JButton updateCollision = new JButton("Update Collision");
+        updateCollision.addActionListener(e -> {
+            SwingUtilities.invokeLater(() -> {
+                updateCollision.setText("Updating...");
+                updateCollision.setEnabled(false);
+                revalidate();
+                repaint();
+            });
+
+            new Thread(() -> {
+                try
+                {
+                    Dumper.main(null);
+                    Main.load();
+                }
+                catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+                SwingUtilities.invokeLater(() -> {
+                    updateCollision.setText("Update Collision");
+                    updateCollision.setEnabled(true);
+                    revalidate();
+                    repaint();
+                    update();
+                });
+            }).start();
+
+        });
+        add(updateCollision, BorderLayout.SOUTH);
 
         // Button actions (You can add the necessary functionality here)
         upButton.addActionListener(e -> moveImage(Direction.NORTH));
@@ -103,6 +136,13 @@ public class UIFrame extends JFrame {
         leftButton.addActionListener(e -> moveImage(Direction.WEST));
         calculateCenter();
         setupKeyBindings(imagePanel);
+
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                upButton.requestFocusInWindow();
+            }
+        });
 
         addMouseWheelListener(e -> {
             if (e.getWheelRotation() < 0) {
@@ -118,6 +158,8 @@ public class UIFrame extends JFrame {
     }
 
     public void update() {
+        if(Main.getCollision() == null)
+            return;
         viewPort.render(base, imageLabel.getWidth(), imageLabel.getHeight(), zoomSlider.getValue());
         ImageIcon imageIcon = new ImageIcon(viewPort.getCanvas());
         imageLabel.setIcon(imageIcon);

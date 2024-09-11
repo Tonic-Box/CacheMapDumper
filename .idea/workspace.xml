@@ -4,17 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="changed to devious mvn local">
+    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="Implimented UI">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/Dumper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/Dumper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/Exclusion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/Exclusion.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/FlagMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/FlagMap.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/GlobalCollisionMapWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/GlobalCollisionMapWriter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/TileExclusion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/TileExclusion.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/openrs2/OpenRS2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/openrs2/OpenRS2.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/openrs2/struct/Build.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/openrs2/struct/Build.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/openrs2/struct/GameInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/openrs2/struct/GameInfo.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -118,12 +111,21 @@
       <option name="project" value="LOCAL" />
       <updated>1726034168726</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Implimented UI">
+      <option name="closed" value="true" />
+      <created>1726076081972</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1726076081972</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="init" />
     <MESSAGE value="changed to devious mvn local" />
-    <option name="LAST_COMMIT_MESSAGE" value="changed to devious mvn local" />
+    <MESSAGE value="Implimented UI" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implimented UI" />
   </component>
 </project>
