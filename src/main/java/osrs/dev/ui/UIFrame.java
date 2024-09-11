@@ -3,6 +3,7 @@ package osrs.dev.ui;
 import osrs.dev.Dumper;
 import osrs.dev.Main;
 import osrs.dev.ui.viewport.ViewPort;
+import osrs.dev.util.ThreadPool;
 import osrs.dev.util.WorldPoint;
 
 import javax.swing.*;
@@ -10,14 +11,17 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.concurrent.Future;
 
 public class UIFrame extends JFrame {
     private final JLabel imageLabel;
     private final JSlider zoomSlider;
     private final JSlider speedSlider;
+    private final JButton upButton;
     private final ViewPort viewPort;
     private final WorldPoint base = new WorldPoint(3207, 3213, 0);
     private final WorldPoint center = new WorldPoint(0,0,0);
+    private Future<?> current;
 
     public UIFrame() {
         setTitle("Collision Viewer");
@@ -46,7 +50,7 @@ public class UIFrame extends JFrame {
         gbc.insets = new Insets(5, 5, 5, 5);
 
         // Set up button size and add the Up button (use ^ for up)
-        JButton upButton = new JButton("^");
+        upButton = new JButton("^");
         upButton.setPreferredSize(new Dimension(50, 50));  // Make buttons more square
         gbc.gridx = 1;
         gbc.gridy = 0;
@@ -78,7 +82,7 @@ public class UIFrame extends JFrame {
         controlPanel.add(navigationPanel, BorderLayout.CENTER);
 
         // Zoom slider
-        zoomSlider = new JSlider(JSlider.VERTICAL, 5, 500, 100);
+        zoomSlider = new JSlider(JSlider.VERTICAL, 5, 1000, 100);
         zoomSlider.setMajorTickSpacing(50);
         zoomSlider.setPaintTicks(true);
         zoomSlider.setPaintLabels(true);
@@ -123,17 +127,24 @@ public class UIFrame extends JFrame {
         });
 
         addMouseWheelListener(e -> {
+            if(!canProcess())
+                return;
             if (e.getWheelRotation() < 0) {
                 int val = zoomSlider.getValue() - 10;
                 val = val > 0 ? val : 1;
                 zoomSlider.setValue(val);
             } else {
                 int val = zoomSlider.getValue() + 10;
-                val = val < 501 ? val : 500;
+                val = val < 501 ? val : 1000;
                 zoomSlider.setValue(val);
             }
         });
 
+
+    }
+
+    public void requestInitialFocus()
+    {
         upButton.requestFocusInWindow();
     }
 
@@ -147,7 +158,7 @@ public class UIFrame extends JFrame {
                 repaint();
             });
 
-            new Thread(() -> {
+            ThreadPool.submit(() -> {
                 try
                 {
                     Dumper.main(null);
@@ -164,7 +175,7 @@ public class UIFrame extends JFrame {
                     repaint();
                     update();
                 });
-            }).start();
+            });
 
         });
         return updateCollision;
@@ -173,12 +184,25 @@ public class UIFrame extends JFrame {
     public void update() {
         if(Main.getCollision() == null)
             return;
-        viewPort.render(base, imageLabel.getWidth(), imageLabel.getHeight(), zoomSlider.getValue());
-        ImageIcon imageIcon = new ImageIcon(viewPort.getCanvas());
-        imageLabel.setIcon(imageIcon);
+
+        if(!canProcess())
+            return;
+
+        current = ThreadPool.submit(() -> {
+            viewPort.render(base, imageLabel.getWidth(), imageLabel.getHeight(), zoomSlider.getValue());
+            ImageIcon imageIcon = new ImageIcon(viewPort.getCanvas());
+            imageLabel.setIcon(imageIcon);
+        });
+    }
+
+    private boolean canProcess()
+    {
+        return current == null || current.isDone();
     }
 
     private void moveImage(Direction direction) {
+        if(!canProcess())
+            return;
         switch (direction)
         {
             case NORTH:
@@ -306,6 +330,9 @@ public class UIFrame extends JFrame {
 
     private void setPlane(int plane)
     {
+        if(!canProcess())
+            return;
+
         if(plane > 3 || plane < 0)
             return;
         SwingUtilities.invokeLater(() -> {

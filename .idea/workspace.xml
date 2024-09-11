@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="fixed bug with zooming, wasn't recalculating center tile when we moved in cardinal directions.">
+    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="Cleanup">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -141,7 +143,15 @@
       <option name="project" value="LOCAL" />
       <updated>1726079549144</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Cleanup">
+      <option name="closed" value="true" />
+      <created>1726080124205</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1726080124205</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -151,6 +161,7 @@
     <MESSAGE value="UI work" />
     <MESSAGE value="hotkeys (0-3) for changing plane" />
     <MESSAGE value="fixed bug with zooming, wasn't recalculating center tile when we moved in cardinal directions." />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed bug with zooming, wasn't recalculating center tile when we moved in cardinal directions." />
+    <MESSAGE value="Cleanup" />
+    <option name="LAST_COMMIT_MESSAGE" value="Cleanup" />
   </component>
 </project>

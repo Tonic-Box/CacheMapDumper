@@ -27,6 +27,7 @@ public class Main
             {
                 frame.update();
             }
+            frame.requestInitialFocus();
         });
     }
 
