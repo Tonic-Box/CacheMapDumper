@@ -1,4 +1,4 @@
-package osrs.dev;
+package osrs.dev.dumper;
 
 import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
 

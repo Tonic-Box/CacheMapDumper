@@ -4,11 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="init">
+    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="changed to devious mvn local">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/Dumper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/Dumper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/openrs2/OpenRS2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/openrs2/OpenRS2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/Exclusion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/Exclusion.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/FlagMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/FlagMap.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/GlobalCollisionMapWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/GlobalCollisionMapWriter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/TileExclusion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/TileExclusion.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/openrs2/OpenRS2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/openrs2/OpenRS2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/openrs2/struct/Build.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/openrs2/struct/Build.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/openrs2/struct/GameInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/openrs2/struct/GameInfo.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,8 +33,14 @@
       </list>
     </option>
   </component>
+  <component name="Git.Merge.Settings">
+    <option name="BRANCH" value="origin/master" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
@@ -47,7 +59,7 @@
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.Main">
     <configuration name="Dumper" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="osrs.dev.Dumper" />
       <module name="CacheMapDumper.main" />
@@ -61,8 +73,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="osrs.dev.Main" />
+      <module name="CacheMapDumper.main" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="osrs.dev.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.Main" />
         <item itemvalue="Application.Dumper" />
       </list>
     </recent_temporary>
@@ -84,11 +110,20 @@
       <option name="project" value="LOCAL" />
       <updated>1726033370529</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="changed to devious mvn local">
+      <option name="closed" value="true" />
+      <created>1726034168726</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1726034168726</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="init" />
-    <option name="LAST_COMMIT_MESSAGE" value="init" />
+    <MESSAGE value="changed to devious mvn local" />
+    <option name="LAST_COMMIT_MESSAGE" value="changed to devious mvn local" />
   </component>
 </project>

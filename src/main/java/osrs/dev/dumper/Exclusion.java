@@ -1,4 +1,4 @@
-package osrs.dev;
+package osrs.dev.dumper;
 
 public enum Exclusion
 {

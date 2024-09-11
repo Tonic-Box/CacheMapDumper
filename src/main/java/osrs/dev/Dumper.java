@@ -10,6 +10,11 @@ import net.runelite.cache.region.Region;
 import net.runelite.cache.region.RegionLoader;
 import net.runelite.cache.util.KeyProvider;
 import net.runelite.cache.util.XteaKeyManager;
+import osrs.dev.dumper.Exclusion;
+import osrs.dev.dumper.GlobalCollisionMapWriter;
+import osrs.dev.dumper.TileExclusion;
+import osrs.dev.dumper.openrs2.OpenRS2;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,6 +29,7 @@ import java.util.concurrent.Future;
 @Getter
 public class Dumper
 {
+    public static final File OUTPUT_MAP = new File("C:\\Users\\zacke\\IdeaProjects\\VitaX-fixed\\src\\main\\resources\\VitaX\\services\\local\\pathfinder", "map.dat");
     public static final String COLLISION_DIR = System.getProperty("user.home") + "/VitaX/collision/";
     public static final String CACHE_DIR = COLLISION_DIR + "/cache/";
     public static final String XTEA_DIR = COLLISION_DIR + "/keys/";
@@ -60,7 +66,7 @@ public class Dumper
     {
         ensureDirectory(COLLISION_DIR);
         ensureDirectory(XTEA_DIR);
-        //OpenRS2.update();
+        OpenRS2.update();
 
         XteaKeyManager xteaKeyManager = new XteaKeyManager();
         try (FileInputStream fin = new FileInputStream(XTEA_DIR + "keys.json"))
@@ -105,9 +111,8 @@ public class Dumper
                 }
             }
 
-            File file = new File("C:\\Users\\zacke\\IdeaProjects\\VitaX-fixed\\src\\main\\resources\\VitaX\\services\\local\\pathfinder", "map.dat");//new File(COLLISION_DIR, "map.dat");
-            dumper.collisionMapWriter.save(file.getPath());
-            System.out.println("Wrote collision map to " + file);
+           dumper.collisionMapWriter.save(OUTPUT_MAP.getPath());
+            System.out.println("Wrote collision map to " + OUTPUT_MAP);
         }
         catch (ExecutionException | InterruptedException e)
         {

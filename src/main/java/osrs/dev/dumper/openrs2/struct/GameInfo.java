@@ -1,4 +1,4 @@
-package osrs.dev.openrs2.struct;
+package osrs.dev.dumper.openrs2.struct;
 
 import com.google.gson.annotations.Expose;
 import lombok.Data;

@@ -1,10 +1,9 @@
-package osrs.dev.openrs2;
+package osrs.dev.dumper.openrs2;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import lombok.extern.slf4j.Slf4j;
 import osrs.dev.Dumper;
-import osrs.dev.openrs2.struct.GameInfo;
+import osrs.dev.dumper.openrs2.struct.GameInfo;
 
 import java.io.*;
 import java.lang.reflect.Type;

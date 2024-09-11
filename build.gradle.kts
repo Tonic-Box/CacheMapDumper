@@ -18,7 +18,9 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.24")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
     implementation(group = "net.unethicalite", name = "cache", version = "1.0.20-EXPERIMENTAL")
-    implementation("com.google.code.gson:gson:2.7")
+    implementation("com.google.code.gson:gson:2.8.9")
+    implementation("com.formdev:flatlaf:2.4")
+    implementation("com.google.guava:guava:31.1-jre")
 }
 
 tasks.test {
