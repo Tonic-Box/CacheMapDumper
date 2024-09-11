@@ -1,7 +1,6 @@
 package osrs.dev;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.cache.ObjectManager;
 import net.runelite.cache.definitions.ObjectDefinition;
 import net.runelite.cache.fs.Store;
@@ -11,8 +10,6 @@ import net.runelite.cache.region.Region;
 import net.runelite.cache.region.RegionLoader;
 import net.runelite.cache.util.KeyProvider;
 import net.runelite.cache.util.XteaKeyManager;
-import osrs.dev.openrs2.OpenRS2;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-@Slf4j
 @Getter
 public class Dumper
 {
@@ -64,7 +60,7 @@ public class Dumper
     {
         ensureDirectory(COLLISION_DIR);
         ensureDirectory(XTEA_DIR);
-        OpenRS2.update();
+        //OpenRS2.update();
 
         XteaKeyManager xteaKeyManager = new XteaKeyManager();
         try (FileInputStream fin = new FileInputStream(XTEA_DIR + "keys.json"))

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-@Slf4j
 public class OpenRS2
 {
     private static final Gson gson = new Gson();

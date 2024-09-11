@@ -7,10 +7,8 @@ group = "osrs.dev"
 version = "1.0-SNAPSHOT"
 
 repositories {
+    mavenLocal()
     mavenCentral()
-    maven {
-        url = uri("https://repo.runelite.net")
-    }
 }
 
 dependencies {
@@ -19,7 +17,8 @@ dependencies {
     // https://mvnrepository.com/artifact/net.runelite/cache
     implementation("org.projectlombok:lombok:1.18.24")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation(group = "net.runelite", name = "cache", version = "1.10.37-SNAPSHOT")
+    implementation(group = "net.unethicalite", name = "cache", version = "1.0.20-EXPERIMENTAL")
+    implementation("com.google.code.gson:gson:2.7")
 }
 
 tasks.test {
