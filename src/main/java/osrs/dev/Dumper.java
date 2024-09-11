@@ -14,7 +14,9 @@ import osrs.dev.dumper.Exclusion;
 import osrs.dev.dumper.GlobalCollisionMapWriter;
 import osrs.dev.dumper.TileExclusion;
 import osrs.dev.dumper.openrs2.OpenRS2;
+import osrs.dev.util.OptionsParser;
 
+import javax.swing.text.html.Option;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -29,13 +31,16 @@ import java.util.concurrent.Future;
 @Getter
 public class Dumper
 {
-    public static final File OUTPUT_MAP = new File("C:\\Users\\zacke\\IdeaProjects\\VitaX-fixed\\src\\main\\resources\\VitaX\\services\\local\\pathfinder", "map.dat");
+    //new File("C:\\Users\\zacke\\IdeaProjects\\VitaX-fixed\\src\\main\\resources\\VitaX\\services\\local\\pathfinder", "map.dat");
+    public static File OUTPUT_MAP = new File(System.getProperty("user.home") + "/VitaX/collision/map.dat");
     public static final String COLLISION_DIR = System.getProperty("user.home") + "/VitaX/collision/";
     public static final String CACHE_DIR = COLLISION_DIR + "/cache/";
     public static final String XTEA_DIR = COLLISION_DIR + "/keys/";
     private final RegionLoader regionLoader;
     private final ObjectManager objectManager;
     private final GlobalCollisionMapWriter collisionMapWriter;
+
+    private static OptionsParser optionsParser;
 
     public Dumper(Store store, KeyProvider keyProvider)
     {
@@ -64,9 +69,14 @@ public class Dumper
 
     public static void main(String[] args) throws IOException
     {
+        optionsParser = new OptionsParser(args);
+        OUTPUT_MAP = new File(optionsParser.getPath());
         ensureDirectory(COLLISION_DIR);
         ensureDirectory(XTEA_DIR);
-        OpenRS2.update();
+        if(optionsParser.isFreshCache())
+        {
+            OpenRS2.update();
+        }
 
         XteaKeyManager xteaKeyManager = new XteaKeyManager();
         try (FileInputStream fin = new FileInputStream(XTEA_DIR + "keys.json"))

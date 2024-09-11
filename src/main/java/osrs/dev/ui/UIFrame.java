@@ -5,10 +5,10 @@ import osrs.dev.Main;
 import osrs.dev.ui.viewport.ViewPort;
 import osrs.dev.util.ThreadPool;
 import osrs.dev.util.WorldPoint;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.Future;
@@ -18,6 +18,8 @@ public class UIFrame extends JFrame {
     private final JSlider zoomSlider;
     private final JSlider speedSlider;
     private final JButton upButton;
+    private JTextField pathField;
+    private JCheckBox downloadCacheCheckBox;
     private final ViewPort viewPort;
     private final WorldPoint base = new WorldPoint(3207, 3213, 0);
     private final WorldPoint center = new WorldPoint(0,0,0);
@@ -93,6 +95,47 @@ public class UIFrame extends JFrame {
         });
         controlPanel.add(zoomSlider, BorderLayout.EAST);
 
+        // Radio buttons for plane selection
+        JPanel planeSelectionPanel = new JPanel(new GridLayout(5, 1));
+        planeSelectionPanel.setBorder(BorderFactory.createTitledBorder("Select Plane"));
+
+        ButtonGroup planeGroup = new ButtonGroup();
+        JRadioButton plane1 = new JRadioButton("Plane 0", true);
+        JRadioButton plane2 = new JRadioButton("Plane 1");
+        JRadioButton plane3 = new JRadioButton("Plane 2");
+        JRadioButton plane4 = new JRadioButton("Plane 3");
+
+        planeGroup.add(plane1);
+        planeGroup.add(plane2);
+        planeGroup.add(plane3);
+        planeGroup.add(plane4);
+
+        planeSelectionPanel.add(plane1);
+        planeSelectionPanel.add(plane2);
+        planeSelectionPanel.add(plane3);
+        planeSelectionPanel.add(plane4);
+
+        // Action listeners for plane buttons
+        ActionListener planeActionListener = e -> {
+            JRadioButton source = (JRadioButton) e.getSource();
+            if (source == plane1) {
+                setPlane(0);
+            } else if (source == plane2) {
+                setPlane(1);
+            } else if (source == plane3) {
+                setPlane(2);
+            } else if (source == plane4) {
+                setPlane(3);
+            }
+        };
+
+        plane1.addActionListener(planeActionListener);
+        plane2.addActionListener(planeActionListener);
+        plane3.addActionListener(planeActionListener);
+        plane4.addActionListener(planeActionListener);
+
+        controlPanel.add(planeSelectionPanel, BorderLayout.SOUTH);
+
         add(controlPanel, BorderLayout.EAST);
 
         // Zoom slider
@@ -102,8 +145,7 @@ public class UIFrame extends JFrame {
         speedSlider.setPaintLabels(true);
         add(speedSlider, BorderLayout.NORTH);
 
-        JButton updateCollision = getUpdateButton();
-        add(updateCollision, BorderLayout.SOUTH);
+        add(createUpdatePanel(), BorderLayout.SOUTH);
 
         // Button actions (You can add the necessary functionality here)
         upButton.addActionListener(e -> moveImage(Direction.NORTH));
@@ -139,8 +181,31 @@ public class UIFrame extends JFrame {
                 zoomSlider.setValue(val);
             }
         });
+    }
 
+    private JPanel createUpdatePanel() {
+        JPanel updatePanel = new JPanel(new BorderLayout());
+        updatePanel.setBorder(BorderFactory.createTitledBorder("Update Collision"));
 
+        // Create a panel for input fields
+        JPanel inputPanel = new JPanel(new GridLayout(3, 1));
+
+        // Add a label and text field for collision map path
+        JLabel pathLabel = new JLabel("Collision Map Path:");
+        pathField = new JTextField();
+        pathField.setText(Dumper.OUTPUT_MAP.getPath());
+        inputPanel.add(pathLabel);
+        inputPanel.add(pathField);
+
+        // Add input panel to the main update panel
+        updatePanel.add(inputPanel);
+
+        downloadCacheCheckBox = new JCheckBox("Download Fresh Cache");
+        inputPanel.add(downloadCacheCheckBox);
+
+        // Add the Update Collision button at the bottom
+        updatePanel.add(getUpdateButton(), BorderLayout.SOUTH);
+        return updatePanel;
     }
 
     public void requestInitialFocus()
@@ -161,7 +226,7 @@ public class UIFrame extends JFrame {
             ThreadPool.submit(() -> {
                 try
                 {
-                    Dumper.main(null);
+                    Dumper.main(new String[] {"-path", pathField.getText(), "-fresh", ((downloadCacheCheckBox.isSelected() ? "y" : "n"))});
                     Main.load();
                 }
                 catch (Exception ex)
