@@ -24,7 +24,7 @@ public class UIFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         setSize(800, 600);
-        setLocationRelativeTo(null); // Center on screen
+        setLocationRelativeTo(null);
 
         viewPort = new ViewPort();
 
@@ -98,35 +98,7 @@ public class UIFrame extends JFrame {
         speedSlider.setPaintLabels(true);
         add(speedSlider, BorderLayout.NORTH);
 
-        JButton updateCollision = new JButton("Update Collision");
-        updateCollision.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> {
-                updateCollision.setText("Updating...");
-                updateCollision.setEnabled(false);
-                revalidate();
-                repaint();
-            });
-
-            new Thread(() -> {
-                try
-                {
-                    Dumper.main(null);
-                    Main.load();
-                }
-                catch (Exception ex)
-                {
-                    ex.printStackTrace();
-                }
-                SwingUtilities.invokeLater(() -> {
-                    updateCollision.setText("Update Collision");
-                    updateCollision.setEnabled(true);
-                    revalidate();
-                    repaint();
-                    update();
-                });
-            }).start();
-
-        });
+        JButton updateCollision = getUpdateButton();
         add(updateCollision, BorderLayout.SOUTH);
 
         // Button actions (You can add the necessary functionality here)
@@ -163,6 +135,39 @@ public class UIFrame extends JFrame {
         });
 
         upButton.requestFocusInWindow();
+    }
+
+    private JButton getUpdateButton() {
+        JButton updateCollision = new JButton("Update Collision");
+        updateCollision.addActionListener(e -> {
+            SwingUtilities.invokeLater(() -> {
+                updateCollision.setText("Updating...");
+                updateCollision.setEnabled(false);
+                revalidate();
+                repaint();
+            });
+
+            new Thread(() -> {
+                try
+                {
+                    Dumper.main(null);
+                    Main.load();
+                }
+                catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+                SwingUtilities.invokeLater(() -> {
+                    updateCollision.setText("Update Collision");
+                    updateCollision.setEnabled(true);
+                    revalidate();
+                    repaint();
+                    update();
+                });
+            }).start();
+
+        });
+        return updateCollision;
     }
 
     public void update() {
@@ -248,7 +253,6 @@ public class UIFrame extends JFrame {
         Action zeroAction = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("Zero?");
                 setPlane(0);
             }
         };
