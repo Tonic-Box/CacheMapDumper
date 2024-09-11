@@ -233,6 +233,35 @@ public class UIFrame extends JFrame {
             }
         };
 
+        Action zeroAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Zero?");
+                setPlane(0);
+            }
+        };
+
+        Action oneAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setPlane(1);
+            }
+        };
+
+        Action twoAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setPlane(2);
+            }
+        };
+
+        Action threeAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setPlane(3);
+            }
+        };
+
         // Bind the arrow keys to actions
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "upAction");
         component.getActionMap().put("upAction", upAction);
@@ -245,6 +274,29 @@ public class UIFrame extends JFrame {
 
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "rightAction");
         component.getActionMap().put("rightAction", rightAction);
+
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("0"), "zeroAction");
+        component.getActionMap().put("zeroAction", zeroAction);
+
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("1"), "oneAction");
+        component.getActionMap().put("oneAction", oneAction);
+
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("2"), "twoAction");
+        component.getActionMap().put("twoAction", twoAction);
+
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("3"), "threeAction");
+        component.getActionMap().put("threeAction", threeAction);
+    }
+
+    private void setPlane(int plane)
+    {
+        if(plane > 3 || plane < 0)
+            return;
+        SwingUtilities.invokeLater(() -> {
+            base.setPlane(plane);
+            center.setPlane(plane);
+            update();
+        });
     }
 
     private enum Direction
