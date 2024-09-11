@@ -143,6 +143,12 @@ public class UIFrame extends JFrame {
                 upButton.requestFocusInWindow();
             }
         });
+        imageLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                upButton.requestFocusInWindow();
+            }
+        });
 
         addMouseWheelListener(e -> {
             if (e.getWheelRotation() < 0) {
@@ -155,6 +161,8 @@ public class UIFrame extends JFrame {
                 zoomSlider.setValue(val);
             }
         });
+
+        upButton.requestFocusInWindow();
     }
 
     public void update() {
@@ -170,15 +178,19 @@ public class UIFrame extends JFrame {
         {
             case NORTH:
                 base.north(speedSlider.getValue());
+                calculateCenter();
                 break;
             case SOUTH:
                 base.south(speedSlider.getValue());
+                calculateCenter();
                 break;
             case EAST:
                 base.east(speedSlider.getValue());
+                calculateCenter();
                 break;
             case WEST:
                 base.west(speedSlider.getValue());
+                calculateCenter();
                 break;
 
         }

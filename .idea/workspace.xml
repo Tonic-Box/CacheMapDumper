@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="UI work">
+    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="hotkeys (0-3) for changing plane">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -125,7 +126,15 @@
       <option name="project" value="LOCAL" />
       <updated>1726077777841</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="hotkeys (0-3) for changing plane">
+      <option name="closed" value="true" />
+      <created>1726078279886</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1726078279886</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -133,6 +142,7 @@
     <MESSAGE value="changed to devious mvn local" />
     <MESSAGE value="Implimented UI" />
     <MESSAGE value="UI work" />
-    <option name="LAST_COMMIT_MESSAGE" value="UI work" />
+    <MESSAGE value="hotkeys (0-3) for changing plane" />
+    <option name="LAST_COMMIT_MESSAGE" value="hotkeys (0-3) for changing plane" />
   </component>
 </project>
