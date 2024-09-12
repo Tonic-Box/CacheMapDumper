@@ -12,7 +12,6 @@ import net.runelite.cache.util.KeyProvider;
 import net.runelite.cache.util.XteaKeyManager;
 import osrs.dev.dumper.Exclusion;
 import osrs.dev.dumper.GlobalCollisionMapWriter;
-import osrs.dev.dumper.TileExclusion;
 import osrs.dev.dumper.openrs2.OpenRS2;
 import osrs.dev.util.OptionsParser;
 import java.io.File;
@@ -52,12 +51,11 @@ public class Dumper
         this.collisionMapWriter = new GlobalCollisionMapWriter();
     }
 
-    public Dumper load() throws IOException
+    public void load() throws IOException
     {
         objectManager.load();
         regionLoader.loadRegions();
         regionLoader.calculateBounds();
-        return this;
     }
 
     private ObjectDefinition findObject(int id)
@@ -152,7 +150,7 @@ public class Dumper
                         int orientation = loc.getOrientation();
                         ObjectDefinition object = findObject(loc.getId());
 
-                        if (object == null || TileExclusion.isExcluded(regionX, regionY, z))
+                        if (object == null)
                         {
                             continue;
                         }

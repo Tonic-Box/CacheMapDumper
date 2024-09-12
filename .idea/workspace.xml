@@ -4,10 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="Reworked ui a bit">
+    <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="Display now updates when window resizes. Added window icon.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/Dumper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/Dumper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/Exclusion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/Exclusion.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/FlagMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/CollisionFlags.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/TileExclusion.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/reader/CollisionMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/reader/CollisionMap.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/reader/FlagMap.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/reader/GlobalCollisionMap.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/reader/SplitFlagMap.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,6 +59,11 @@
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\zacke\IdeaProjects\CacheMapDumper\src\main\resources\osrs\dev\ui" />
+    </key>
+  </component>
   <component name="RunManager" selected="Application.Main">
     <configuration name="Dumper" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="osrs.dev.Dumper" />
@@ -167,7 +179,15 @@
       <option name="project" value="LOCAL" />
       <updated>1726089433169</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Display now updates when window resizes. Added window icon.">
+      <option name="closed" value="true" />
+      <created>1726090205273</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1726090205273</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -180,6 +200,7 @@
     <MESSAGE value="Cleanup" />
     <MESSAGE value="Fixed a bit of threadding stuff" />
     <MESSAGE value="Reworked ui a bit" />
-    <option name="LAST_COMMIT_MESSAGE" value="Reworked ui a bit" />
+    <MESSAGE value="Display now updates when window resizes. Added window icon." />
+    <option name="LAST_COMMIT_MESSAGE" value="Display now updates when window resizes. Added window icon." />
   </component>
 </project>

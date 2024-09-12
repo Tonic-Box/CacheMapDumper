@@ -1,6 +1,6 @@
 package osrs.dev.dumper;
 
-public class FlagMap
+public class CollisionFlags
 {
     /**
      * The default value of a tile in the compressed collision map
