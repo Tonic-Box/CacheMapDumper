@@ -10,9 +10,9 @@ import javax.swing.*;
 import java.io.IOException;
 
 /**
- * Main class for the application
+ * Launches the collision map viewer
  */
-public class Main
+public class MainUI
 {
     @Getter
     private static CollisionMap collision;

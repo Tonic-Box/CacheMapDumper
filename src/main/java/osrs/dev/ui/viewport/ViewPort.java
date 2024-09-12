@@ -1,7 +1,7 @@
 package osrs.dev.ui.viewport;
 
 import lombok.Getter;
-import osrs.dev.Main;
+import osrs.dev.MainUI;
 import osrs.dev.util.WorldPoint;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -11,12 +11,12 @@ import java.awt.image.BufferedImage;
  */
 public class ViewPort
 {
+    @Getter
+    private BufferedImage canvas;
     private WorldPoint base;
     private int cellDim;
     private int lastPlane;
     private int displayPlane;
-    @Getter
-    private BufferedImage canvas;
     private int lastWidth = 0;
     private int lastHeight = 0;
 
@@ -123,7 +123,7 @@ public class ViewPort
             for(int y = 0; y < cellDim; y++)
             {
                 cellPoint = new Point(x, y);
-                flag = Main.getCollision().all((short)(base.getX() + x), (short)(base.getY() + y), (byte)displayPlane);
+                flag = MainUI.getCollision().all((short)(base.getX() + x), (short)(base.getY() + y), (byte)displayPlane);
                 cells[x][y] = new Cell(flag, cellPoint);
             }
         }

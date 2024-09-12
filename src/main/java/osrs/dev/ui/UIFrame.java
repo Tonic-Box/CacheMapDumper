@@ -1,7 +1,7 @@
 package osrs.dev.ui;
 
 import osrs.dev.Dumper;
-import osrs.dev.Main;
+import osrs.dev.MainUI;
 import osrs.dev.ui.viewport.ViewPort;
 import osrs.dev.util.ImageUtil;
 import osrs.dev.util.ThreadPool;
@@ -243,7 +243,7 @@ public class UIFrame extends JFrame {
                 try
                 {
                     Dumper.main(new String[] {"-path", pathField.getText(), "-fresh", ((downloadCacheCheckBox.isSelected() ? "y" : "n"))});
-                    Main.load();
+                    MainUI.load();
                 }
                 catch (Exception ex)
                 {
@@ -263,7 +263,7 @@ public class UIFrame extends JFrame {
     }
 
     public void update() {
-        if(Main.getCollision() == null)
+        if(MainUI.getCollision() == null)
             return;
 
         if(busy())
