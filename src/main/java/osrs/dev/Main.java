@@ -4,6 +4,8 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import lombok.Getter;
 import osrs.dev.reader.CollisionMap;
 import osrs.dev.ui.UIFrame;
+import osrs.dev.util.ThreadPool;
+
 import javax.swing.*;
 import java.io.IOException;
 
@@ -24,6 +26,7 @@ public class Main
     public static void main(String[] args) throws Exception
     {
         FlatDarkLaf.setup();
+        Runtime.getRuntime().addShutdownHook(new Thread(ThreadPool::shutdown));
         if(Dumper.OUTPUT_MAP.exists())
         {
             collision = CollisionMap.load(Dumper.OUTPUT_MAP.getPath());

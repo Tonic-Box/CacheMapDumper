@@ -5,23 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6ec120b4-41fb-4bd0-bdfb-c64c76830618" name="Changes" comment="more cleanup, javadoc'd everything">
-      <change afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/util/ProgressBar.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/Dumper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/Dumper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/CollisionFlags.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/CollisionFlags.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/Exclusion.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/Exclusion.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/GlobalCollisionMapWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/CollisionMapWriter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/openrs2/OpenRS2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/dumper/openrs2/OpenRS2.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/reader/CollisionMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/reader/CollisionMap.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/reader/Flags.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/reader/Flags.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/UIFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/viewport/Cell.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/viewport/Cell.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/viewport/ViewPort.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/viewport/ViewPort.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/viewport/Wall.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/ui/viewport/Wall.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/util/OptionsParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/util/OptionsParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/util/ImageUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/util/ImageUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/util/ThreadPool.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/util/ThreadPool.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/osrs/dev/util/WorldPoint.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/osrs/dev/util/WorldPoint.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -206,7 +193,15 @@
       <option name="project" value="LOCAL" />
       <updated>1726119017312</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="more cleanup, javadoc'd everything">
+      <option name="closed" value="true" />
+      <created>1726125544991</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1726125544992</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

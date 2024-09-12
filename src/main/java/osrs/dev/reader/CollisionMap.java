@@ -1,7 +1,6 @@
 package osrs.dev.reader;
 
 import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
-import osrs.dev.util.WorldPoint;
 import java.io.*;
 
 /**

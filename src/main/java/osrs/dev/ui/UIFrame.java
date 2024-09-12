@@ -178,7 +178,7 @@ public class UIFrame extends JFrame {
         });
 
         addMouseWheelListener(e -> {
-            if(!canProcess())
+            if(busy())
                 return;
             if (e.getWheelRotation() < 0) {
                 int val = zoomSlider.getValue() - 10;
@@ -266,7 +266,7 @@ public class UIFrame extends JFrame {
         if(Main.getCollision() == null)
             return;
 
-        if(!canProcess())
+        if(busy())
             return;
 
         current = ThreadPool.submit(() -> {
@@ -276,13 +276,13 @@ public class UIFrame extends JFrame {
         });
     }
 
-    private boolean canProcess()
+    private boolean busy()
     {
-        return current == null || current.isDone();
+        return current != null && !current.isDone();
     }
 
     private void moveImage(Direction direction) {
-        if(!canProcess())
+        if(busy())
             return;
         switch (direction)
         {
@@ -411,7 +411,7 @@ public class UIFrame extends JFrame {
 
     private void setPlane(int plane)
     {
-        if(!canProcess())
+        if(busy())
             return;
 
         if(plane > 3 || plane < 0)
