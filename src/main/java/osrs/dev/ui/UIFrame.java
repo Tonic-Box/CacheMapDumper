@@ -11,6 +11,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.concurrent.Future;
 
+/**
+ * The main UI frame for the Collision Viewer.
+ */
 public class UIFrame extends JFrame {
     private final JLabel imageLabel;
     private final JSlider zoomSlider;

@@ -4,15 +4,23 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import lombok.Getter;
 import osrs.dev.reader.CollisionMap;
 import osrs.dev.ui.UIFrame;
-
 import javax.swing.*;
 import java.io.IOException;
 
+/**
+ * Main class for the application
+ */
 public class Main
 {
     @Getter
     private static CollisionMap collision;
     private static UIFrame frame;
+
+    /**
+     * Main method
+     * @param args command line arguments
+     * @throws Exception if an error occurs
+     */
     public static void main(String[] args) throws Exception
     {
         FlatDarkLaf.setup();
@@ -31,6 +39,11 @@ public class Main
         });
     }
 
+    /**
+     * Load the collision map
+     * @throws IOException if an error occurs
+     * @throws ClassNotFoundException if an error occurs
+     */
     public static void load() throws IOException, ClassNotFoundException {
         if(Dumper.OUTPUT_MAP.exists())
         {

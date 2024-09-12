@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import osrs.dev.Dumper;
 import osrs.dev.dumper.openrs2.struct.GameInfo;
-
 import java.io.*;
 import java.lang.reflect.Type;
 import java.net.URL;
@@ -12,11 +11,19 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+/**
+ * This class is responsible for fetching the latest game info from the OpenRS2 API and downloading the cache and XTEA keys.
+ */
 public class OpenRS2
 {
     private static final Gson gson = new Gson();
     private static final String API_BASE = "https://archive.openrs2.org/";
 
+    /**
+     * Fetches the latest game info from the OpenRS2 API and downloads the cache and XTEA keys.
+     *
+     * @throws IOException if an I/O error occurs
+     */
     public static void update() throws IOException {
         GameInfo latest = latest();
 
@@ -27,6 +34,12 @@ public class OpenRS2
         System.out.println("Downloaded XTEA keys for REV_" + latest.getBuilds().get(0).getMajor());
     }
 
+    /**
+     * Downloads the XTEA keys for the specified game info.
+     *
+     * @param gameInfo the game info
+     * @throws IOException if an I/O error occurs
+     */
     public static void downloadXTEA(GameInfo gameInfo) throws IOException {
         String api = API_BASE + "/caches/" + gameInfo.getScope() + "/" + gameInfo.getId() + "/keys.json";
 
@@ -42,6 +55,11 @@ public class OpenRS2
         }
     }
 
+    /**
+     * Downloads the cache for the specified game info.
+     *
+     * @param gameInfo the game info
+     */
     private static void downloadCache(GameInfo gameInfo) {
         String api = API_BASE + "/caches/" + gameInfo.getScope() + "/" + gameInfo.getId() + "/disk.zip";
         try (InputStream in = new URL(api).openStream();
@@ -76,6 +94,12 @@ public class OpenRS2
         }
     }
 
+    /**
+     * Fetches the latest game info from the OpenRS2 API.
+     *
+     * @return the latest game info
+     * @throws IOException if an I/O error occurs
+     */
     private static GameInfo latest() throws IOException {
         List<GameInfo> gameInfos = fetch();
         GameInfo latest = null;
@@ -91,6 +115,12 @@ public class OpenRS2
         return latest;
     }
 
+    /**
+     * Fetches the game info from the OpenRS2 API.
+     *
+     * @return the game info
+     * @throws IOException if an I/O error occurs
+     */
     private static List<GameInfo> fetch() throws IOException {
         Type gameInfoListType = new TypeToken<List<GameInfo>>() {}.getType();
         System.out.println("Fetching game info from " + API_BASE + "caches.json");

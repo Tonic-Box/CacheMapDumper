@@ -7,6 +7,9 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a cell in the viewport.
+ */
 @Data
 public class Cell {
     private final byte flag;
@@ -16,6 +19,7 @@ public class Cell {
 
     /**
      * no blocking
+     * @return true if there are no walls
      */
     public boolean none()
     {
@@ -24,32 +28,51 @@ public class Cell {
 
     /**
      * full blocking
+     * @return true if all walls are blocking
      */
     public boolean full()
     {
         return flag == Flags.NONE;
     }
 
+    /**
+     * west wall blocking
+     */
     public boolean westWall()
     {
         return (flag & Flags.WEST) == 0;
     }
 
+    /**
+     * east wall blocking
+     */
     public boolean eastWall()
     {
         return (flag & Flags.EAST) == 0;
     }
 
+    /**
+     * north wall blocking
+     * @return true if there is a wall to the north
+     */
     public boolean southWall()
     {
         return (flag & Flags.SOUTH) == 0;
     }
 
+    /**
+     * south wall blocking
+     * @return true if there is a wall to the south
+     */
     public boolean northWall()
     {
         return (flag & Flags.NORTH) == 0;
     }
 
+    /**
+     * Get the walls for this cell
+     * @return a list of walls
+     */
     public java.util.List<Wall> getWalls()
     {
         final List<Wall> walls = new ArrayList<>();
@@ -72,6 +95,13 @@ public class Cell {
         return walls;
     }
 
+    /**
+     * Render the cell
+     * @param g2d the graphics object
+     * @param cells the number of cells
+     * @param width the width of the viewport
+     * @param height the height of the viewport
+     */
     public void render(Graphics2D g2d, int cells, int width, int height)
     {
         float cellWidth = (float) width / cells;
@@ -123,6 +153,13 @@ public class Cell {
         }
     }
 
+    /**
+     * Draw the walls for this cell
+     * @param g2d the graphics object
+     * @param cells the number of cells
+     * @param width the width of the viewport
+     * @param height the height of the viewport
+     */
     private void drawWalls(Graphics2D g2d, int cells, int width, int height) {
         float cellWidth = (float) width / cells;
         float cellHeight = (float) height / cells;

@@ -11,9 +11,11 @@ import net.runelite.cache.region.RegionLoader;
 import net.runelite.cache.util.KeyProvider;
 import net.runelite.cache.util.XteaKeyManager;
 import osrs.dev.dumper.Exclusion;
-import osrs.dev.dumper.GlobalCollisionMapWriter;
+import osrs.dev.dumper.CollisionMapWriter;
 import osrs.dev.dumper.openrs2.OpenRS2;
 import osrs.dev.util.OptionsParser;
+import osrs.dev.util.ProgressBar;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,32 +27,51 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+/**
+ * Dumps collision data from the cache.
+ */
 @Getter
 public class Dumper
 {
-    //new File("C:\\Users\\zacke\\IdeaProjects\\VitaX-fixed\\src\\main\\resources\\VitaX\\services\\local\\pathfinder", "map.dat");
     public static File OUTPUT_MAP = new File(System.getProperty("user.home") + "/VitaX/collision/map.dat");
     public static final String COLLISION_DIR = System.getProperty("user.home") + "/VitaX/collision/";
     public static final String CACHE_DIR = COLLISION_DIR + "/cache/";
     public static final String XTEA_DIR = COLLISION_DIR + "/keys/";
     private final RegionLoader regionLoader;
     private final ObjectManager objectManager;
-    private final GlobalCollisionMapWriter collisionMapWriter;
+    private final CollisionMapWriter collisionMapWriter;
 
     private static OptionsParser optionsParser;
 
+    /**
+     * Creates a new dumper.
+     *
+     * @param store the cache store
+     * @param keyProvider the XTEA key provider
+     */
     public Dumper(Store store, KeyProvider keyProvider)
     {
         this(store, new RegionLoader(store, keyProvider));
     }
 
+    /**
+     * Creates a new dumper.
+     *
+     * @param store the cache store
+     * @param regionLoader the region loader
+     */
     public Dumper(Store store, RegionLoader regionLoader)
     {
         this.regionLoader = regionLoader;
         this.objectManager = new ObjectManager(store);
-        this.collisionMapWriter = new GlobalCollisionMapWriter();
+        this.collisionMapWriter = new CollisionMapWriter();
     }
 
+    /**
+     * Loads the cache.
+     *
+     * @throws IOException if an I/O error occurs
+     */
     public void load() throws IOException
     {
         objectManager.load();
@@ -58,11 +79,23 @@ public class Dumper
         regionLoader.calculateBounds();
     }
 
+    /**
+     * Finds an object definition by id.
+     *
+     * @param id the id
+     * @return the object definition, or {@code null} if not found
+     */
     private ObjectDefinition findObject(int id)
     {
         return objectManager.getObject(id);
     }
 
+    /**
+     * Dumps the collision data.
+     *
+     * @param args the command-line arguments
+     * @throws IOException if an I/O error occurs
+     */
     public static void main(String[] args) throws IOException
     {
         optionsParser = new OptionsParser(args);
@@ -108,16 +141,13 @@ public class Dumper
             executor.shutdown();
 
             int n = 0;
+            ProgressBar progressBar = new ProgressBar(total, 50);
             for (Future<Void> future : futures)
             {
                 future.get(); // wait for task to complete
-                if (++n % 100 == 0)
-                {
-                    System.out.println("Processed " + n + " / " + total + " regions");
-                }
+                progressBar.update(++n);
             }
-
-           dumper.collisionMapWriter.save(OUTPUT_MAP.getPath());
+            dumper.collisionMapWriter.save(OUTPUT_MAP.getPath());
             System.out.println("Wrote collision map to " + OUTPUT_MAP);
         }
         catch (ExecutionException | InterruptedException e)
@@ -126,6 +156,11 @@ public class Dumper
         }
     }
 
+    /**
+     * Processes a region.
+     *
+     * @param region the region
+     */
     private void processRegion(Region region)
     {
         int baseX = region.getBaseX();
@@ -257,6 +292,11 @@ public class Dumper
         }
     }
 
+    /**
+     * Ensures a directory exists.
+     *
+     * @param dir the directory
+     */
     private static void ensureDirectory(String dir)
     {
         File file = new File(dir);

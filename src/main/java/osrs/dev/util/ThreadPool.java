@@ -6,6 +6,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
+/**
+ * A simple wrapper around an {@link ExecutorService} to make it easier to submit tasks and retrieve their results.
+ */
 public class ThreadPool
 {
     private final static ExecutorService executor = Executors.newCachedThreadPool();

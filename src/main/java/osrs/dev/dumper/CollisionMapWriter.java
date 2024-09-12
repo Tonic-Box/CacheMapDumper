@@ -6,11 +6,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-public class GlobalCollisionMapWriter {
+/**
+ * Writes a collision map
+ */
+public class CollisionMapWriter {
     private static final int W_FLAG = 1 << 30;
     private final SparseBitSet bitSet;
 
-    public GlobalCollisionMapWriter() {
+    public CollisionMapWriter() {
         this.bitSet = new SparseBitSet();
     }
 

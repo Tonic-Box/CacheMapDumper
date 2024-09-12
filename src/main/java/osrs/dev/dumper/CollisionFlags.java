@@ -1,14 +1,10 @@
 package osrs.dev.dumper;
 
+/**
+ * A class containing flags for collision.
+ */
 public class CollisionFlags
 {
-    /**
-     * The default value of a tile in the compressed collision map
-     */
     public static final boolean TILE_DEFAULT = true;
-
-    /**
-     * The value of a blocked tile in the compressed collision map
-     */
     public static final boolean TILE_BLOCKED = false;
 }

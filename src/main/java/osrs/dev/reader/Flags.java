@@ -1,5 +1,8 @@
 package osrs.dev.reader;
 
+/**
+ * Flags for the 8 directions.
+ */
 public class Flags {
     public static final byte NORTHWEST = 0x1;
     public static final byte NORTH = 0x2;

@@ -6,6 +6,9 @@ import osrs.dev.util.WorldPoint;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/**
+ * The ViewPort class is responsible for rendering the game world to the screen.
+ */
 public class ViewPort
 {
     private WorldPoint base;
@@ -17,12 +20,24 @@ public class ViewPort
     private int lastWidth = 0;
     private int lastHeight = 0;
 
+
+    /**
+     * Constructs a new ViewPort object.
+     */
     public ViewPort()
     {
         lastPlane = 0;
         displayPlane = 0;
     }
 
+    /**
+     * Renders the game world to the screen.
+     *
+     * @param base The base point of the game world.
+     * @param width The width of the screen.
+     * @param height The height of the screen.
+     * @param cellDim The dimension of the cells.
+     */
     public void render(WorldPoint base, int width, int height, int cellDim)
     {
 
@@ -88,6 +103,11 @@ public class ViewPort
         }
     }
 
+    /**
+     * Builds the cells for the game world tiles
+     *
+     * @return The cells for the game world.
+     */
     private Cell[][] buildCells()
     {
         if(lastPlane != base.getPlane())

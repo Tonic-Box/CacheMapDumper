@@ -2,6 +2,9 @@ package osrs.dev.util;
 
 import lombok.Getter;
 
+/**
+ * Parses command line options.
+ */
 @Getter
 public class OptionsParser
 {

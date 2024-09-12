@@ -1,5 +1,8 @@
 package osrs.dev.dumper;
 
+/**
+ * An enumeration of object IDs that should be excluded from the collision map.
+ */
 public enum Exclusion
 {
     AMETHYST_CRYSTALS_EMPTY_WALL_11393(11393),
