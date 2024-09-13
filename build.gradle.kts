@@ -20,7 +20,9 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.9")
     implementation("com.formdev:flatlaf:2.4")
     implementation("com.google.guava:guava:32.0.0-android")
-
+    implementation("org.apache.commons:commons-collections4:4.3")
+    implementation("commons-beanutils:commons-beanutils:1.9.4")
+    implementation("org.apache.commons:commons-configuration2:2.10.1")
 }
 
 tasks.test {

@@ -129,7 +129,8 @@ public class Dumper
         }
         catch (ExecutionException | InterruptedException e)
         {
-            throw new RuntimeException(e);
+            System.err.println("Error processing region");
+            e.printStackTrace();
         }
     }
 

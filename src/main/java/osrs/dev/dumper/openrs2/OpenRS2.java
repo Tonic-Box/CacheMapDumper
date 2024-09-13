@@ -4,9 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import osrs.dev.dumper.Dumper;
 import osrs.dev.dumper.openrs2.struct.GameInfo;
+import osrs.dev.util.OptionsParser;
+
 import java.io.*;
 import java.lang.reflect.Type;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;

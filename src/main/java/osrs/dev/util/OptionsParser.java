@@ -2,6 +2,9 @@ package osrs.dev.util;
 
 import lombok.Getter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Parses command line options.
  */
@@ -21,6 +24,5 @@ public class OptionsParser
                     break;
             }
         }
-
     }
 }

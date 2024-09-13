@@ -2,6 +2,7 @@ package osrs.dev.ui;
 
 import osrs.dev.dumper.Dumper;
 import osrs.dev.Main;
+import osrs.dev.dumper.openrs2.OpenRS2;
 import osrs.dev.ui.viewport.ViewPort;
 import osrs.dev.util.ImageUtil;
 import osrs.dev.util.ThreadPool;
@@ -9,6 +10,8 @@ import osrs.dev.util.WorldPoint;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Future;
 import static osrs.dev.ui.Components.*;
 
@@ -26,6 +29,7 @@ public class UIFrame extends JFrame {
     private final WorldPoint base = new WorldPoint(3207, 3213, 0);
     private final WorldPoint center = new WorldPoint(0,0,0);
     private Future<?> current;
+    private SettingsFrame settingsFrame;
 
     /**
      * Creates a new UI frame for the Collision Viewer.
@@ -177,12 +181,37 @@ public class UIFrame extends JFrame {
             }
         });
 
+        createMenuBar();
+
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
                 update();
             }
         });
+    }
+
+    private void createMenuBar()
+    {
+        // Create the menu bar
+        JMenuBar menuBar = new JMenuBar();
+
+        // Add a button to the menu bar
+        JButton button = new JButton("Settings");
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(settingsFrame == null)
+                    settingsFrame = new SettingsFrame(() -> update());
+                settingsFrame.setVisible(true);
+            }
+        });
+
+        // Add the button and combo box to the menu bar
+        menuBar.add(button);
+
+        // Set the menu bar for the JFrame
+        setJMenuBar(menuBar);
     }
 
     /**
@@ -207,6 +236,13 @@ public class UIFrame extends JFrame {
         updatePanel.add(inputPanel);
 
         downloadCacheCheckBox = new JCheckBox("Download Fresh Cache (Will download anyways if this is your first time)");
+        downloadCacheCheckBox.setSelected(Main.getConfigManager().freshCache());
+        downloadCacheCheckBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                Main.getConfigManager().setFreshCache(downloadCacheCheckBox.isSelected());
+            }
+        });
         inputPanel.add(downloadCacheCheckBox);
 
         // Add the Update Collision button at the bottom
@@ -236,10 +272,18 @@ public class UIFrame extends JFrame {
                 repaint();
             });
 
+            Main.getConfigManager().setOutputPath(pathField.getText());
+
+            List<String> options = new ArrayList<>();
+            options.add("-path");
+            options.add(pathField.getText());
+            options.add("-fresh");
+            options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
+
             ThreadPool.submit(() -> {
                 try
                 {
-                    Dumper.main(new String[] {"-path", pathField.getText(), "-fresh", ((downloadCacheCheckBox.isSelected() ? "y" : "n"))});
+                    Dumper.main(options.toArray(new String[0]));
                     Main.load();
                 }
                 catch (Exception ex)

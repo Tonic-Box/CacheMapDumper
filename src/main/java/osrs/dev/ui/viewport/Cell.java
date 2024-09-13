@@ -1,6 +1,7 @@
 package osrs.dev.ui.viewport;
 
 import lombok.Data;
+import osrs.dev.Main;
 import osrs.dev.reader.Flags;
 
 import java.awt.*;
@@ -112,7 +113,10 @@ public class Cell {
 
         if(!none())
         {
-            g2d.setColor(Color.BLACK);
+            if(cellWidth > 10)
+                g2d.setColor(Main.getConfigManager().collisionColor());
+            else
+                g2d.setColor(Main.getConfigManager().wallColor());
             if(full())
             {
                 g2d.fillRect(x, y, Math.round(cellWidth) + 1, Math.round(cellHeight) + 1);
@@ -132,7 +136,7 @@ public class Cell {
         float cellWidth = (float) width / cells;
         float cellHeight = (float) height / cells;
 
-        g2d.setColor(Color.BLACK);
+        g2d.setColor(Main.getConfigManager().wallColor());
         int lineThickness = 2;
 
         for (Wall wall : getWalls()) {

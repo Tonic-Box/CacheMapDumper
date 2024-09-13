@@ -56,11 +56,11 @@ public class ViewPort
             Graphics2D g2d = canvas.createGraphics();
 
             // Set the background color to white
-            g2d.setColor(new Color(128, 128, 128));
+            g2d.setColor(Main.getConfigManager().bgColor());
             g2d.fillRect(0, 0, width, height);
 
             // Draw the grid
-            g2d.setColor(Color.CYAN);
+            g2d.setColor(Main.getConfigManager().gridColor());
             float cellWidth = (float) width / cellDim;
             float cellHeight = (float) height / cellDim;
             if(cellWidth >= 10)
