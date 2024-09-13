@@ -1,7 +1,7 @@
 package osrs.dev.ui;
 
-import osrs.dev.Dumper;
-import osrs.dev.MainUI;
+import osrs.dev.dumper.Dumper;
+import osrs.dev.Main;
 import osrs.dev.ui.viewport.ViewPort;
 import osrs.dev.util.ImageUtil;
 import osrs.dev.util.ThreadPool;
@@ -86,8 +86,8 @@ public class UIFrame extends JFrame {
         controlPanel.add(navigationPanel, BorderLayout.CENTER);
 
         // Zoom slider
-        zoomSlider = new JSlider(JSlider.VERTICAL, 5, 1000, 100);
-        zoomSlider.setMajorTickSpacing(50);
+        zoomSlider = new JSlider(JSlider.VERTICAL, 5, 2000, 100);
+        zoomSlider.setMajorTickSpacing(100);
         zoomSlider.setPaintTicks(true);
         zoomSlider.setPaintLabels(true);
         zoomSlider.addChangeListener(e -> {
@@ -141,8 +141,8 @@ public class UIFrame extends JFrame {
         add(controlPanel, BorderLayout.EAST);
 
         // Zoom slider
-        speedSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 5);
-        speedSlider.setMajorTickSpacing(5);
+        speedSlider = new JSlider(JSlider.HORIZONTAL, 0, 300, 5);
+        speedSlider.setMajorTickSpacing(15);
         speedSlider.setPaintTicks(true);
         speedSlider.setPaintLabels(true);
         add(speedSlider, BorderLayout.NORTH);
@@ -243,7 +243,7 @@ public class UIFrame extends JFrame {
                 try
                 {
                     Dumper.main(new String[] {"-path", pathField.getText(), "-fresh", ((downloadCacheCheckBox.isSelected() ? "y" : "n"))});
-                    MainUI.load();
+                    Main.load();
                 }
                 catch (Exception ex)
                 {
@@ -263,7 +263,7 @@ public class UIFrame extends JFrame {
     }
 
     public void update() {
-        if(MainUI.getCollision() == null)
+        if(Main.getCollision() == null)
             return;
 
         if(busy())

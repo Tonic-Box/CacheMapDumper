@@ -1,4 +1,4 @@
-package osrs.dev;
+package osrs.dev.dumper;
 
 import lombok.Getter;
 import net.runelite.cache.ObjectManager;
@@ -10,8 +10,6 @@ import net.runelite.cache.region.Region;
 import net.runelite.cache.region.RegionLoader;
 import net.runelite.cache.util.KeyProvider;
 import net.runelite.cache.util.XteaKeyManager;
-import osrs.dev.dumper.Exclusion;
-import osrs.dev.dumper.CollisionMapWriter;
 import osrs.dev.dumper.openrs2.OpenRS2;
 import osrs.dev.util.OptionsParser;
 import osrs.dev.util.ProgressBar;

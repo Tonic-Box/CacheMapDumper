@@ -14,8 +14,6 @@ import java.util.List;
 public class Cell {
     private final byte flag;
     private final Point point;
-    private boolean hasLocalPlayer = false;
-    private boolean selected = false;
 
     /**
      * no blocking
@@ -119,36 +117,6 @@ public class Cell {
             {
                 g2d.fillRect(x, y, Math.round(cellWidth) + 1, Math.round(cellHeight) + 1);
             }
-        }
-
-        if(selected)
-        {
-            int w = Math.round(cellWidth);
-            int h = Math.round(cellHeight);
-            if(w < 8)
-            {
-                w = 8;
-                h = 8;
-            }
-            g2d.setColor(Color.CYAN);
-            g2d.fillRect(x, y, w, h);
-        }
-
-        if(hasLocalPlayer)
-        {
-            int w = Math.round(cellWidth);
-            int h = Math.round(cellHeight);
-            if(w < 8)
-            {
-                w = 8;
-                h = 8;
-            }
-            g2d.setColor(Color.WHITE);
-            g2d.fillRect(x, y, w + 1, h + 1);
-        }
-
-        if(!none())
-        {
             drawWalls(g2d, cells, width, height);
         }
     }

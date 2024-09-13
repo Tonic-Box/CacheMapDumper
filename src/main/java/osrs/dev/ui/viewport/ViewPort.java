@@ -1,7 +1,7 @@
 package osrs.dev.ui.viewport;
 
 import lombok.Getter;
-import osrs.dev.MainUI;
+import osrs.dev.Main;
 import osrs.dev.util.WorldPoint;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -71,32 +71,12 @@ public class ViewPort
                 }
             }
 
-            Cell playerCell = null;
-            Cell selectedCell = null;
-
             for(Cell[] row : cells)
             {
                 for(Cell cell : row)
                 {
                     cell.render(g2d, cellDim, width, height);
-                    if(cell.isHasLocalPlayer())
-                    {
-                        playerCell = cell;
-                    }
-                    else if(cell.isSelected())
-                    {
-                        selectedCell = cell;
-                    }
                 }
-            }
-
-            if(selectedCell != null)
-            {
-                selectedCell.render(g2d, cellDim, width, height);
-            }
-            if(playerCell != null)
-            {
-                playerCell.render(g2d, cellDim, width, height);
             }
         }
         catch(Exception ignored) {
@@ -123,7 +103,7 @@ public class ViewPort
             for(int y = 0; y < cellDim; y++)
             {
                 cellPoint = new Point(x, y);
-                flag = MainUI.getCollision().all((short)(base.getX() + x), (short)(base.getY() + y), (byte)displayPlane);
+                flag = Main.getCollision().all((short)(base.getX() + x), (short)(base.getY() + y), (byte)displayPlane);
                 cells[x][y] = new Cell(flag, cellPoint);
             }
         }

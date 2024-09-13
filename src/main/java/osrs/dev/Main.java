@@ -2,6 +2,7 @@ package osrs.dev;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import lombok.Getter;
+import osrs.dev.dumper.Dumper;
 import osrs.dev.reader.CollisionMap;
 import osrs.dev.ui.UIFrame;
 import osrs.dev.util.ThreadPool;
@@ -12,7 +13,7 @@ import java.io.IOException;
 /**
  * Launches the collision map viewer
  */
-public class MainUI
+public class Main
 {
     @Getter
     private static CollisionMap collision;

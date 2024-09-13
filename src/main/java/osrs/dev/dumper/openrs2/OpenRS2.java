@@ -2,7 +2,7 @@ package osrs.dev.dumper.openrs2;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import osrs.dev.Dumper;
+import osrs.dev.dumper.Dumper;
 import osrs.dev.dumper.openrs2.struct.GameInfo;
 import java.io.*;
 import java.lang.reflect.Type;
@@ -73,13 +73,10 @@ public class OpenRS2
                         throw new IOException("Failed to create directory " + outFile);
                     }
                 } else {
-                    // Ensure parent directories exist
                     File parent = outFile.getParentFile();
                     if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
                         throw new IOException("Failed to create directory " + parent);
                     }
-
-                    // Write file contents
                     try (OutputStream out = new FileOutputStream(outFile)) {
                         byte[] buffer = new byte[4096];
                         int len;
