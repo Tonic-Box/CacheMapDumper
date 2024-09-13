@@ -80,7 +80,7 @@ public class Dumper
         OUTPUT_MAP = new File(optionsParser.getPath());
         ensureDirectory(COLLISION_DIR);
         ensureDirectory(XTEA_DIR);
-        if(optionsParser.isFreshCache())
+        if(optionsParser.isFreshCache() || isDirectoryEmpty(new File(CACHE_DIR)))
         {
             OpenRS2.update();
         }
@@ -284,5 +284,19 @@ public class Dumper
                 throw new RuntimeException("Unable to create directory " + dir);
             }
         }
+    }
+
+    /**
+     * Checks if a directory is empty.
+     *
+     * @param directory the directory
+     * @return {@code true} if the directory is empty, otherwise {@code false}
+     */
+    public static boolean isDirectoryEmpty(File directory) {
+        if (directory.isDirectory()) {
+            String[] files = directory.list();
+            return files != null && files.length == 0;
+        }
+        return false;
     }
 }
