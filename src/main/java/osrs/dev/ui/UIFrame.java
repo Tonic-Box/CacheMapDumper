@@ -10,12 +10,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.concurrent.Future;
+import static osrs.dev.ui.Components.*;
 
 /**
  * The main UI frame for the Collision Viewer.
  */
 public class UIFrame extends JFrame {
-    private final JLabel imageLabel;
+    private final JLabel mapView;
     private final JSlider zoomSlider;
     private final JSlider speedSlider;
     private final JButton upButton;
@@ -26,6 +27,9 @@ public class UIFrame extends JFrame {
     private final WorldPoint center = new WorldPoint(0,0,0);
     private Future<?> current;
 
+    /**
+     * Creates a new UI frame for the Collision Viewer.
+     */
     public UIFrame() {
         setIconImage(ImageUtil.loadImageResource(UIFrame.class, "icon.png"));
         setTitle("Collision Viewer");
@@ -38,10 +42,8 @@ public class UIFrame extends JFrame {
 
         // Main panel for image display
         JPanel imagePanel = new JPanel(new BorderLayout());
-        imageLabel = new JLabel();
-        imageLabel.setHorizontalAlignment(JLabel.CENTER);
-        imageLabel.setVerticalAlignment(JLabel.CENTER);
-        imagePanel.add(imageLabel, BorderLayout.CENTER);
+        mapView = createMapView();
+        imagePanel.add(mapView, BorderLayout.CENTER);
         add(imagePanel, BorderLayout.CENTER);
 
         // Control panel on the right
@@ -54,8 +56,7 @@ public class UIFrame extends JFrame {
         gbc.insets = new Insets(5, 5, 5, 5);
 
         // Set up button size and add the Up button (use ^ for up)
-        upButton = new JButton("^");
-        upButton.setPreferredSize(new Dimension(50, 50));  // Make buttons more square
+        upButton = createDirectionButton(Direction.NORTH, e -> moveImage(Direction.NORTH));
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.gridwidth = 1;
@@ -63,22 +64,19 @@ public class UIFrame extends JFrame {
         navigationPanel.add(upButton, gbc);
 
         // Add the Left button (use < for left)
-        JButton leftButton = new JButton("<");
-        leftButton.setPreferredSize(new Dimension(50, 50)); // Square size
+        JButton leftButton = createDirectionButton(Direction.WEST, e -> moveImage(Direction.WEST));
         gbc.gridx = 0;
         gbc.gridy = 1;
         navigationPanel.add(leftButton, gbc);
 
         // Add the Right button (use > for right)
-        JButton rightButton = new JButton(">");
-        rightButton.setPreferredSize(new Dimension(50, 50)); // Square size
+        JButton rightButton = createDirectionButton(Direction.EAST, e -> moveImage(Direction.EAST));
         gbc.gridx = 2;
         gbc.gridy = 1;
         navigationPanel.add(rightButton, gbc);
 
         // Add the Down button (use v for down)
-        JButton downButton = new JButton("v");
-        downButton.setPreferredSize(new Dimension(50, 50));  // Square size
+        JButton downButton = createDirectionButton(Direction.SOUTH, e -> moveImage(Direction.SOUTH));
         gbc.gridx = 1;
         gbc.gridy = 2;
         navigationPanel.add(downButton, gbc);
@@ -86,11 +84,7 @@ public class UIFrame extends JFrame {
         controlPanel.add(navigationPanel, BorderLayout.CENTER);
 
         // Zoom slider
-        zoomSlider = new JSlider(JSlider.VERTICAL, 5, 2000, 100);
-        zoomSlider.setMajorTickSpacing(100);
-        zoomSlider.setPaintTicks(true);
-        zoomSlider.setPaintLabels(true);
-        zoomSlider.addChangeListener(e -> {
+        zoomSlider = createZoomSlider(e -> {
             calculateBase();
             calculateCenter();
             update();
@@ -140,20 +134,12 @@ public class UIFrame extends JFrame {
 
         add(controlPanel, BorderLayout.EAST);
 
-        // Zoom slider
-        speedSlider = new JSlider(JSlider.HORIZONTAL, 0, 300, 5);
-        speedSlider.setMajorTickSpacing(15);
-        speedSlider.setPaintTicks(true);
-        speedSlider.setPaintLabels(true);
+        // Speed slider
+        speedSlider = createSpeedSlider();
         add(speedSlider, BorderLayout.NORTH);
 
         add(createUpdatePanel(), BorderLayout.SOUTH);
 
-        // Button actions (You can add the necessary functionality here)
-        upButton.addActionListener(e -> moveImage(Direction.NORTH));
-        downButton.addActionListener(e -> moveImage(Direction.SOUTH));
-        rightButton.addActionListener(e -> moveImage(Direction.EAST));
-        leftButton.addActionListener(e -> moveImage(Direction.WEST));
         calculateCenter();
         setupKeyBindings(imagePanel);
 
@@ -163,7 +149,7 @@ public class UIFrame extends JFrame {
                 upButton.requestFocusInWindow();
             }
         });
-        imageLabel.addMouseListener(new MouseAdapter() {
+        mapView.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 upButton.requestFocusInWindow();
@@ -199,6 +185,10 @@ public class UIFrame extends JFrame {
         });
     }
 
+    /**
+     * Creates the update panel for updating the collision map.
+     * @return The update panel.
+     */
     private JPanel createUpdatePanel() {
         JPanel updatePanel = new JPanel(new BorderLayout());
         updatePanel.setBorder(BorderFactory.createTitledBorder("Update Collision"));
@@ -224,11 +214,18 @@ public class UIFrame extends JFrame {
         return updatePanel;
     }
 
+    /**
+     * Requests initial focus for the up button (Purpose is to draw focus off of the sliders)
+     */
     public void requestInitialFocus()
     {
         upButton.requestFocusInWindow();
     }
 
+    /**
+     * Creates the update button for updating the collision map.
+     * @return The update button.
+     */
     private JButton getUpdateButton() {
         JButton updateCollision = new JButton("Update Collision");
         updateCollision.addActionListener(e -> {
@@ -262,6 +259,9 @@ public class UIFrame extends JFrame {
         return updateCollision;
     }
 
+    /**
+     * Updates the collision map.
+     */
     public void update() {
         if(Main.getCollision() == null)
             return;
@@ -270,17 +270,25 @@ public class UIFrame extends JFrame {
             return;
 
         current = ThreadPool.submit(() -> {
-            viewPort.render(base, imageLabel.getWidth(), imageLabel.getHeight(), zoomSlider.getValue());
+            viewPort.render(base, mapView.getWidth(), mapView.getHeight(), zoomSlider.getValue());
             ImageIcon imageIcon = new ImageIcon(viewPort.getCanvas());
-            imageLabel.setIcon(imageIcon);
+            mapView.setIcon(imageIcon);
         });
     }
 
+    /**
+     * checks if its currently busy rendering a map frame
+     * @return true if busy, false otherwise
+     */
     private boolean busy()
     {
         return current != null && !current.isDone();
     }
 
+    /**
+     * Moves the image in the specified direction.
+     * @param direction The direction to move the image.
+     */
     private void moveImage(Direction direction) {
         if(busy())
             return;
@@ -307,6 +315,9 @@ public class UIFrame extends JFrame {
         update();
     }
 
+    /**
+     * Calculates the base point of the image.
+     */
     private void calculateBase()
     {
         int baseX = center.getX() - zoomSlider.getValue() / 2;
@@ -315,7 +326,9 @@ public class UIFrame extends JFrame {
         base.setY(baseY);
     }
 
-
+    /**
+     * Calculates the center point of the image.
+     */
     private void calculateCenter()
     {
         int centerX = base.getX() + zoomSlider.getValue() / 2;
@@ -325,6 +338,10 @@ public class UIFrame extends JFrame {
         center.setPlane(base.getPlane());
     }
 
+    /**
+     * Sets up key bindings for the specified component.
+     * @param component The component to set up key bindings for.
+     */
     private void setupKeyBindings(JComponent component) {
         // Define actions for each arrow key
         Action upAction = new AbstractAction() {
@@ -409,6 +426,10 @@ public class UIFrame extends JFrame {
         component.getActionMap().put("threeAction", threeAction);
     }
 
+    /**
+     * Sets the plane (floor) of the display.
+     * @param plane The plane to set the display to.
+     */
     private void setPlane(int plane)
     {
         if(busy())
@@ -421,13 +442,5 @@ public class UIFrame extends JFrame {
             center.setPlane(plane);
             update();
         });
-    }
-
-    private enum Direction
-    {
-        NORTH,
-        SOUTH,
-        EAST,
-        WEST
     }
 }

@@ -113,10 +113,8 @@ public class CollisionMap {
             return null;
         }
 
-        try (InputStream is = new FileInputStream(file);
-             ObjectInputStream objectInputStream = new ObjectInputStream(is)) {
-            SparseBitSet bitSet = (SparseBitSet) objectInputStream.readObject();
-            return new CollisionMap(bitSet);
+        try (InputStream is = new FileInputStream(file); ObjectInputStream objectInputStream = new ObjectInputStream(is)) {
+            return new CollisionMap((SparseBitSet) objectInputStream.readObject());
         }
     }
 }

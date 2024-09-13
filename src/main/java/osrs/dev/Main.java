@@ -2,6 +2,7 @@ package osrs.dev;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import osrs.dev.dumper.Dumper;
 import osrs.dev.reader.CollisionMap;
 import osrs.dev.ui.UIFrame;
@@ -28,10 +29,7 @@ public class Main
     {
         FlatDarkLaf.setup();
         Runtime.getRuntime().addShutdownHook(new Thread(ThreadPool::shutdown));
-        if(Dumper.OUTPUT_MAP.exists())
-        {
-            collision = CollisionMap.load(Dumper.OUTPUT_MAP.getPath());
-        }
+        load();
         SwingUtilities.invokeLater(() -> {
             frame = new UIFrame();
             frame.setVisible(true);

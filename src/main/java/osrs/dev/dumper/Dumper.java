@@ -47,31 +47,11 @@ public class Dumper
      * @param store the cache store
      * @param keyProvider the XTEA key provider
      */
-    public Dumper(Store store, KeyProvider keyProvider)
+    public Dumper(Store store, KeyProvider keyProvider) throws IOException
     {
-        this(store, new RegionLoader(store, keyProvider));
-    }
-
-    /**
-     * Creates a new dumper.
-     *
-     * @param store the cache store
-     * @param regionLoader the region loader
-     */
-    public Dumper(Store store, RegionLoader regionLoader)
-    {
-        this.regionLoader = regionLoader;
+        this.regionLoader = new RegionLoader(store, keyProvider);
         this.objectManager = new ObjectManager(store);
         this.collisionMapWriter = new CollisionMapWriter();
-    }
-
-    /**
-     * Loads the cache.
-     *
-     * @throws IOException if an I/O error occurs
-     */
-    public void load() throws IOException
-    {
         objectManager.load();
         regionLoader.loadRegions();
         regionLoader.calculateBounds();
@@ -118,7 +98,6 @@ public class Dumper
             store.load();
 
             Dumper dumper = new Dumper(store, xteaKeyManager);
-            dumper.load();
 
             Collection<Region> regions = dumper.regionLoader.getRegions();
 
