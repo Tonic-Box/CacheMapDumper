@@ -1,10 +1,12 @@
 **Note:** Pull, build, and publish devious to maven local. This depends on runelites cache tools from devious
 
 **UI Elements**
+
 **Top Slider:** Move speed
 **Right Slider:** Zoom
 
 **Controlls**
+
 **Arrow Keys:** Move around
 **Mouse Wheel:** Zoom
 
