@@ -8,4 +8,5 @@
 **Arrow Keys:** Move around<br />
 **Mouse Wheel:** Zoom
 
-![image](https://github.com/user-attachments/assets/612e2a57-ceea-4084-bfa6-307a410a07df)
+![image](https://github.com/user-attachments/assets/9c93ee6a-8f05-4a3c-b632-9645ee4338a1)
+
