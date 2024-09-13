@@ -206,7 +206,7 @@ public class UIFrame extends JFrame {
         // Add input panel to the main update panel
         updatePanel.add(inputPanel);
 
-        downloadCacheCheckBox = new JCheckBox("Download Fresh Cache");
+        downloadCacheCheckBox = new JCheckBox("Download Fresh Cache (Will download anyways if this is your first time)");
         inputPanel.add(downloadCacheCheckBox);
 
         // Add the Update Collision button at the bottom

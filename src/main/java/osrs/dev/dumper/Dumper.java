@@ -80,7 +80,7 @@ public class Dumper
         OUTPUT_MAP = new File(optionsParser.getPath());
         ensureDirectory(COLLISION_DIR);
         ensureDirectory(XTEA_DIR);
-        if(optionsParser.isFreshCache() || isDirectoryEmpty(new File(CACHE_DIR)))
+        if(optionsParser.isFreshCache() || isDirectoryEmpty(new File(CACHE_DIR)) || !(new File(CACHE_DIR)).exists())
         {
             OpenRS2.update();
         }
