@@ -228,7 +228,7 @@ public class UIFrame extends JFrame {
         // Add a label and text field for collision map path
         JLabel pathLabel = new JLabel("Collision Map Path:");
         pathField = new JTextField();
-        pathField.setText(Dumper.OUTPUT_MAP.getPath());
+        pathField.setText(Main.getConfigManager().outputPath());
         inputPanel.add(pathLabel);
         inputPanel.add(pathField);
 
