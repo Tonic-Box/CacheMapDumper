@@ -2,7 +2,6 @@ package osrs.dev.ui;
 
 import osrs.dev.dumper.Dumper;
 import osrs.dev.Main;
-import osrs.dev.dumper.openrs2.OpenRS2;
 import osrs.dev.ui.viewport.ViewPort;
 import osrs.dev.util.ImageUtil;
 import osrs.dev.util.ThreadPool;
@@ -198,13 +197,10 @@ public class UIFrame extends JFrame {
 
         // Add a button to the menu bar
         JButton button = new JButton("Settings");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(settingsFrame == null)
-                    settingsFrame = new SettingsFrame(() -> update());
-                settingsFrame.setVisible(true);
-            }
+        button.addActionListener(e -> {
+            if(settingsFrame == null)
+                settingsFrame = new SettingsFrame(this::update);
+            settingsFrame.setVisible(true);
         });
 
         // Add the button and combo box to the menu bar
@@ -237,12 +233,7 @@ public class UIFrame extends JFrame {
 
         downloadCacheCheckBox = new JCheckBox("Download Fresh Cache (Will download anyways if this is your first time)");
         downloadCacheCheckBox.setSelected(Main.getConfigManager().freshCache());
-        downloadCacheCheckBox.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                Main.getConfigManager().setFreshCache(downloadCacheCheckBox.isSelected());
-            }
-        });
+        downloadCacheCheckBox.addItemListener(e -> Main.getConfigManager().setFreshCache(downloadCacheCheckBox.isSelected()));
         inputPanel.add(downloadCacheCheckBox);
 
         // Add the Update Collision button at the bottom
