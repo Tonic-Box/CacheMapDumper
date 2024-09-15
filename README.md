@@ -1,4 +1,4 @@
-**Note:** Pull, build, and publish devious (Expirimental branch) to maven local. This depends on runelites cache tools from devious
+**Note:** Pull, build, and publish runelite to maven local. This depends on runelites cache tools
 
 **UI Elements**<br />
 **Top Slider:** Move speed<br />
