@@ -33,8 +33,8 @@ public class OpenRS2
         System.out.println("Fetched latest game info: REV_" + latest.getBuilds().get(0).getMajor());
         downloadCache(latest);
         System.out.println("Downloaded cache for REV_" + latest.getBuilds().get(0).getMajor());
-        /*downloadXTEA(latest);
-        System.out.println("Downloaded XTEA keys for REV_" + latest.getBuilds().get(0).getMajor());*/
+        downloadXTEA(latest);
+        System.out.println("Downloaded XTEA keys for REV_" + latest.getBuilds().get(0).getMajor());
     }
 
     /**

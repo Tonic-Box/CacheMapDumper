@@ -94,23 +94,20 @@ public class Dumper
         }
 
         XteaKeyManager xteaKeyManager = new XteaKeyManager();
-        try (FileInputStream fin = new FileInputStream(System.getProperty("user.home") + "/.runelite/cache/xtea.json")) {
+        try (FileInputStream fin = new FileInputStream(XTEA_DIR + "keys.json")) {
             Field keys = xteaKeyManager.getClass().getDeclaredField("keys");
             keys.setAccessible(true);
             Map<Integer, int[]> cKeys = (Map<Integer, int[]>) keys.get(xteaKeyManager);
-            // Parse the JSON as a Map where the keys are region IDs (String) and the values are arrays of XTEA keys (int[])
-            Map<String, int[]> keyMap = new Gson().fromJson(new InputStreamReader(fin, StandardCharsets.UTF_8), new TypeToken<Map<String, int[]>>() {
+            List<Map<String, Object>> keyList = new Gson().fromJson(new InputStreamReader(fin, StandardCharsets.UTF_8), new TypeToken<List<Map<String, Object>>>() {
             }.getType());
 
-            // Iterate over the map and populate the XteaKeyManager's internal keys map
-            for(Map.Entry<String, int[]> entry : keyMap.entrySet())
-
-            {
-                int regionId = Integer.parseInt(entry.getKey());
-                cKeys.put(regionId, entry.getValue());
+            for (Map<String, Object> entry : keyList) {
+                int regionId = ((Double) entry.get("mapsquare")).intValue();  // mapsquare is your regionId
+                List<Double> keyListDoubles = (List<Double>) entry.get("key");
+                int[] keysArray = keyListDoubles.stream().mapToInt(Double::intValue).toArray();
+                cKeys.put(regionId, keysArray);
             }
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             t.printStackTrace();
         }
 
