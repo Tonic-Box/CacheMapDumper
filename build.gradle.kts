@@ -8,6 +8,9 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenLocal()
+    maven {
+        url = uri("https://repo.runelite.net")
+    }
     mavenCentral()
 }
 
@@ -16,7 +19,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("org.projectlombok:lombok:1.18.24")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation(group = "net.unethicalite", name = "cache", version = "1.0.20-EXPERIMENTAL")
+    implementation(group = "net.runelite", name = "cache", version = "latest.release")
+    //implementation(group = "net.unethicalite", name = "cache", version = "1.0.20-EXPERIMENTAL")
     implementation("com.google.code.gson:gson:2.8.9")
     implementation("com.formdev:flatlaf:2.4")
     implementation("com.google.guava:guava:32.0.0-android")

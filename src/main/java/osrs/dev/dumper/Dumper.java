@@ -1,5 +1,7 @@
 package osrs.dev.dumper;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
 import net.runelite.cache.ObjectManager;
 import net.runelite.cache.definitions.ObjectDefinition;
@@ -17,13 +19,19 @@ import osrs.dev.util.ProgressBar;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import static java.lang.System.in;
 
 /**
  * Dumps collision data from the cache.
@@ -86,9 +94,24 @@ public class Dumper
         }
 
         XteaKeyManager xteaKeyManager = new XteaKeyManager();
-        try (FileInputStream fin = new FileInputStream(XTEA_DIR + "keys.json"))
-        {
-            xteaKeyManager.loadKeys(fin);
+        try (FileInputStream fin = new FileInputStream(System.getProperty("user.home") + "/.runelite/cache/xtea.json")) {
+            Field keys = xteaKeyManager.getClass().getDeclaredField("keys");
+            keys.setAccessible(true);
+            Map<Integer, int[]> cKeys = (Map<Integer, int[]>) keys.get(xteaKeyManager);
+            // Parse the JSON as a Map where the keys are region IDs (String) and the values are arrays of XTEA keys (int[])
+            Map<String, int[]> keyMap = new Gson().fromJson(new InputStreamReader(fin, StandardCharsets.UTF_8), new TypeToken<Map<String, int[]>>() {
+            }.getType());
+
+            // Iterate over the map and populate the XteaKeyManager's internal keys map
+            for(Map.Entry<String, int[]> entry : keyMap.entrySet())
+
+            {
+                int regionId = Integer.parseInt(entry.getKey());
+                cKeys.put(regionId, entry.getValue());
+            }
+        }
+        catch (Throwable t) {
+            t.printStackTrace();
         }
 
         File base = new File(CACHE_DIR);
