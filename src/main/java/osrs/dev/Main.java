@@ -8,6 +8,7 @@ import osrs.dev.ui.UIFrame;
 import osrs.dev.util.ConfigManager;
 import osrs.dev.util.ThreadPool;
 import javax.swing.*;
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -52,6 +53,7 @@ public class Main
      */
     public static void load() throws IOException, ClassNotFoundException {
         configManager = new ConfigManager();
+        Dumper.OUTPUT_MAP = new File(configManager.outputPath());
         if(Dumper.OUTPUT_MAP.exists())
         {
             collision = CollisionMap.load(Dumper.OUTPUT_MAP.getPath());
