@@ -226,6 +226,8 @@ public enum Exclusion
     CLOTH_ARCH_15034(15034, CollisionFlags.TILE_DEFAULT),
     CLOTH_ARCH_3673(3673, CollisionFlags.TILE_DEFAULT),
     TRAP_DOOR_7257(7257),
+    TRAP_DOOR_25214(25214),
+    TRAP_DOOR_1738(1738),
     ARCH_1593(1593, CollisionFlags.TILE_DEFAULT),
     ARCH_23752(23752, CollisionFlags.TILE_DEFAULT),
     ARCH_1534(1534, CollisionFlags.TILE_DEFAULT),
