@@ -104,7 +104,7 @@ public class OpenRS2
         List<GameInfo> gameInfos = fetch();
         GameInfo latest = null;
         for (GameInfo gameInfo : gameInfos) {
-            if(!gameInfo.getGame().equals("oldschool") || !gameInfo.getEnvironment().equals("live"))
+            if(!gameInfo.getGame().equals("oldschool") || !gameInfo.getEnvironment().equals("live") || gameInfo.getBuilds() == null || gameInfo.getBuilds().isEmpty())
                 continue;
 
             if(latest == null || gameInfo.getId() > latest.getId())
@@ -112,6 +112,8 @@ public class OpenRS2
                 latest = gameInfo;
             }
         }
+
+        System.out.println("Latest game info: " + latest.getGame() + " " + latest.getEnvironment() + " " + latest.getBuilds().get(0).getMajor());
         return latest;
     }
 
