@@ -190,6 +190,8 @@ public class Dumper
                                 ? !(object.getName().toLowerCase().contains("door") || object.getName().toLowerCase().contains("gate"))
                                 : Boolean.FALSE.equals(Exclusion.matches(loc.getId()));
 
+                        block = object.getName().toLowerCase().contains("trapdoor") || block;
+
                         if (Exclusion.matches(loc.getId()) != null && Boolean.TRUE.equals(Exclusion.matches(loc.getId()))) {
                             continue;
                         }
