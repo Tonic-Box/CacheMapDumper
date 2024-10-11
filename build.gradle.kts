@@ -1,6 +1,6 @@
 plugins {
-    id("java")
-    id("org.jetbrains.kotlin.plugin.lombok") version "1.6.21"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    java
 }
 
 group = "osrs.dev"
@@ -13,6 +13,9 @@ repositories {
     }
     mavenCentral()
 }
+
+val TaskContainer.publishToMavenLocal: TaskProvider<DefaultTask>
+    get() = named<DefaultTask>("publishToMavenLocal")
 
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
@@ -29,6 +32,23 @@ dependencies {
     implementation("org.apache.commons:commons-configuration2:2.10.1")
 }
 
-tasks.test {
-    useJUnitPlatform()
+
+tasks {
+    register<Copy>("copyCompileDeps") {
+        into("./build/deps/")
+        from(configurations["compileClasspath"])
+    }
+
+    build {
+        finalizedBy("shadowJar")
+    }
+    jar {
+        manifest {
+            attributes(mutableMapOf("Main-Class" to "osrs.dev.Main"))
+        }
+    }
+    shadowJar {
+        archiveClassifier.set("shaded")
+        isZip64 = true
+    }
 }

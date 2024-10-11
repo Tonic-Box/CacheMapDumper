@@ -29,6 +29,7 @@ public class UIFrame extends JFrame {
     private final WorldPoint center = new WorldPoint(0,0,0);
     private Future<?> current;
     private SettingsFrame settingsFrame;
+    private JTextField worldPointField;
 
     /**
      * Creates a new UI frame for the Collision Viewer.
@@ -206,6 +207,36 @@ public class UIFrame extends JFrame {
         // Add the button and combo box to the menu bar
         menuBar.add(button);
 
+        worldPointField = new JTextField();
+
+        //do something when you hit enter key in text field
+        worldPointField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String text = worldPointField.getText();
+                String[] split = text.split(",");
+                if(split.length != 3)
+                    return;
+                try {
+                    int x = Integer.parseInt(split[0]);
+                    int y = Integer.parseInt(split[1]);
+                    int z = Integer.parseInt(split[2]);
+                    center.setX(x);
+                    center.setY(y);
+                    center.setPlane(z);
+                    calculateBase();
+                    update();
+                } catch (NumberFormatException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        //add a little spacing
+        menuBar.add(Box.createHorizontalStrut(10));
+
+        menuBar.add(worldPointField);
+
         // Set the menu bar for the JFrame
         setJMenuBar(menuBar);
     }
@@ -303,6 +334,8 @@ public class UIFrame extends JFrame {
 
         if(busy())
             return;
+
+        worldPointField.setText(center.getX() + "," + center.getY() + "," + center.getPlane());
 
         current = ThreadPool.submit(() -> {
             viewPort.render(base, mapView.getWidth(), mapView.getHeight(), zoomSlider.getValue());
