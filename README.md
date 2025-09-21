@@ -1,4 +1,4 @@
-**Note:** Pull, build, and publish runelite to maven local. This depends on runelites cache tools
+**Note:** This depends on runelites cache tools
 
 **UI Elements**<br />
 **Top Slider:** Move speed<br />
