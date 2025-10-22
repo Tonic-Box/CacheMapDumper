@@ -1,6 +1,6 @@
 package osrs.dev.reader;
 
-import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
+import com.tonic.services.pathfinder.collision.SparseBitSet;
 import java.io.*;
 
 /**

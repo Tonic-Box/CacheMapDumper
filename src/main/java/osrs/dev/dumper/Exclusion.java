@@ -234,6 +234,8 @@ public enum Exclusion
     ARCH_1678(1678, CollisionFlags.TILE_DEFAULT),
     DOOR_11765(11765),
     ARCH_17361(17361, CollisionFlags.TILE_DEFAULT),
+    CURTAIN_1533(1533, CollisionFlags.TILE_DEFAULT),
+    ARCHWAY_1676(1676, CollisionFlags.TILE_DEFAULT)
 
     ;
 

@@ -1,4 +1,4 @@
-package VitaX.services.local.pathfinder.engine.collision;
+package com.tonic.services.pathfinder.collision;
 
 /*- This software is the work of Paladin Software International, Incorporated,
  *  based upon previous work done for and by Sun Microsystems, Inc. */

@@ -1,6 +1,6 @@
 package osrs.dev.dumper;
 
-import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
+import com.tonic.services.pathfinder.collision.SparseBitSet;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

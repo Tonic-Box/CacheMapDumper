@@ -210,7 +210,32 @@ public class UIFrame extends JFrame {
         worldPointField = new JTextField();
 
         //do something when you hit enter key in text field
-        worldPointField.addActionListener(new ActionListener() {
+//        worldPointField.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                //verify enter key
+//                String text = worldPointField.getText();
+//                String[] split = text.split(",");
+//                if(split.length != 3)
+//                    return;
+//                try {
+//                    int x = Integer.parseInt(split[0].trim());
+//                    int y = Integer.parseInt(split[1].trim());
+//                    int z = Integer.parseInt(split[2].trim());
+//                    center.setX(x);
+//                    center.setY(y);
+//                    center.setPlane(z);
+//                    calculateBase();
+//                    update();
+//                } catch (NumberFormatException ex) {
+//                    ex.printStackTrace();
+//                }
+//            }
+//        });
+
+        //run lambda only when you hit enter key in text field
+        worldPointField.getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "enter");
+        worldPointField.getActionMap().put("enter", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String text = worldPointField.getText();
@@ -218,9 +243,9 @@ public class UIFrame extends JFrame {
                 if(split.length != 3)
                     return;
                 try {
-                    int x = Integer.parseInt(split[0]);
-                    int y = Integer.parseInt(split[1]);
-                    int z = Integer.parseInt(split[2]);
+                    int x = Integer.parseInt(split[0].trim());
+                    int y = Integer.parseInt(split[1].trim());
+                    int z = Integer.parseInt(split[2].trim());
                     center.setX(x);
                     center.setY(y);
                     center.setPlane(z);
@@ -231,6 +256,7 @@ public class UIFrame extends JFrame {
                 }
             }
         });
+
 
         //add a little spacing
         menuBar.add(Box.createHorizontalStrut(10));

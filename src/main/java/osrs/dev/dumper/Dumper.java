@@ -186,6 +186,27 @@ public class Dumper
                             continue;
                         }
 
+                        // Handle tiles without a floor
+                        int underlayId = region.getUnderlayId(z < 3 ? tileZ : z, localX, localY);
+                        int overlayId = region.getOverlayId(z < 3 ? tileZ : z, localX, localY);
+                        boolean noFloor = underlayId == 0 && overlayId == 0;
+
+                        if(noFloor)
+                        {
+                            collisionMapWriter.fullBlocking((short) regionX, (short) regionY, (byte) z, true);
+                        }
+
+                        // Handle no-move tiles
+                        int floorType = region.getTileSetting(z < 3 ? tileZ : z, localX, localY);
+                        if (floorType == 1 || // water, rooftop wall
+                                floorType == 3 || // bridge wall
+                                floorType == 5 || // house wall/roof
+                                floorType == 7 || // house wall
+                                noFloor)
+                        {
+                            collisionMapWriter.fullBlocking((short) regionX, (short) regionY, (byte) z, true);
+                        }
+
                         boolean block = (Exclusion.matches(loc.getId()) == null)
                                 ? !(object.getName().toLowerCase().contains("door") || object.getName().toLowerCase().contains("gate"))
                                 : Boolean.FALSE.equals(Exclusion.matches(loc.getId()));
@@ -277,6 +298,15 @@ public class Dumper
 
                     // Handle no-move tiles
                     int floorType = region.getTileSetting(z < 3 ? tileZ : z, localX, localY);
+                    //2926,9576,0
+                    if(localX == 2926 && localX == 9576)
+                    {
+                        System.out.println("Floor type: " + floorType);
+                        System.out.println("Floor type: " + floorType);
+                        System.out.println("Floor type: " + floorType);
+                        System.out.println("Floor type: " + floorType);
+                        System.out.println("Floor type: " + floorType);
+                    }
                     if (floorType == 1 || // water, rooftop wall
                             floorType == 3 || // bridge wall
                             floorType == 5 || // house wall/roof
