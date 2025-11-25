@@ -11,7 +11,7 @@ import java.util.zip.GZIPOutputStream;
  * RoaringBitmap-based collision map with configurable coordinate packing.
  * Uses GZIP-compressed native RoaringBitmap serialization.
  *
- * Bit SET = PATHABLE (can walk in that direction)
+ * Bit SET = BLOCKED (cannot walk in that direction)
  */
 public class RoaringCollisionMap implements ICollisionMap {
 
@@ -31,21 +31,15 @@ public class RoaringCollisionMap implements ICollisionMap {
         this.packing = packing;
     }
 
-    /**
-     * Package-private access for writer.
-     */
-    RoaringBitmap getBitmap() {
-        return bitmap;
-    }
 
     @Override
     public boolean pathableNorth(int x, int y, int plane) {
-        return bitmap.contains(packing.pack(x, y, plane));
+        return !bitmap.contains(packing.pack(x, y, plane));
     }
 
     @Override
     public boolean pathableEast(int x, int y, int plane) {
-        return bitmap.contains(packing.packEast(x, y, plane));
+        return !bitmap.contains(packing.packEast(x, y, plane));
     }
 
     /**
@@ -83,24 +77,6 @@ public class RoaringCollisionMap implements ICollisionMap {
             bitmap.deserialize(ByteBuffer.wrap(bytes));
             bitmap.runOptimize();
             return new RoaringCollisionMap(bitmap, packing);
-        }
-    }
-
-    /**
-     * Saves using GZIP-compressed RoaringBitmap native format.
-     * Compatible with GlobalCollisionMap serialization.
-     *
-     * @param filePath path to save to
-     * @throws IOException if an I/O error occurs
-     */
-    public void save(String filePath) throws IOException {
-        bitmap.runOptimize();
-
-        try (FileOutputStream fos = new FileOutputStream(filePath);
-             GZIPOutputStream gzos = new GZIPOutputStream(fos);
-             DataOutputStream dos = new DataOutputStream(gzos)) {
-
-            bitmap.serialize(dos);
         }
     }
 }

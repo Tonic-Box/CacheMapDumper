@@ -29,7 +29,7 @@ dependencies {
     implementation("org.apache.commons:commons-collections4:4.3")
     implementation("commons-beanutils:commons-beanutils:1.9.4")
     implementation("org.apache.commons:commons-configuration2:2.10.1")
-    implementation("org.roaringbitmap:RoaringBitmap:1.0.6")
+    implementation("org.roaringbitmap:RoaringBitmap:1.3.0")
 
     // SLF4J and Logback
     implementation("org.slf4j:slf4j-api:2.0.9")

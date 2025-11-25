@@ -8,7 +8,7 @@ import java.util.zip.GZIPOutputStream;
 /**
  * Writer for RoaringBitmap-based collision maps with configurable coordinate packing.
  *
- * Bit SET = PATHABLE (can walk in that direction)
+ * Bit SET = BLOCKED (cannot walk in that direction)
  */
 public class RoaringCollisionMapWriter implements ICollisionMapWriter {
 
@@ -28,9 +28,9 @@ public class RoaringCollisionMapWriter implements ICollisionMapWriter {
     public synchronized void setPathableNorth(int x, int y, int plane, boolean pathable) {
         int index = packing.pack(x, y, plane);
         if (pathable) {
-            bitmap.add(index);
-        } else {
             bitmap.remove(index);
+        } else {
+            bitmap.add(index);
         }
     }
 
@@ -38,9 +38,9 @@ public class RoaringCollisionMapWriter implements ICollisionMapWriter {
     public synchronized void setPathableEast(int x, int y, int plane, boolean pathable) {
         int index = packing.packEast(x, y, plane);
         if (pathable) {
-            bitmap.add(index);
-        } else {
             bitmap.remove(index);
+        } else {
+            bitmap.add(index);
         }
     }
 
