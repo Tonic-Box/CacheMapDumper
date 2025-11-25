@@ -4,7 +4,7 @@ package osrs.dev.collision;
  * Interface for coordinate packing strategies.
  * Allows different bit layouts for encoding x, y, plane coordinates into a single int.
  */
-public interface ICoordPacking {
+public interface ICoordPacker {
 
     /**
      * Flag bit for distinguishing east direction from north.

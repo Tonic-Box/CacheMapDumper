@@ -1,11 +1,17 @@
 package osrs.dev.dumper;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.cache.ObjectManager;
+import net.runelite.cache.OverlayManager;
+import net.runelite.cache.UnderlayManager;
+import net.runelite.cache.definitions.MapDefinition;
 import net.runelite.cache.definitions.ObjectDefinition;
+import net.runelite.cache.definitions.OverlayDefinition;
+import net.runelite.cache.definitions.UnderlayDefinition;
 import net.runelite.cache.fs.Store;
 import net.runelite.cache.region.Location;
 import net.runelite.cache.region.Position;
@@ -14,6 +20,7 @@ import net.runelite.cache.region.RegionLoader;
 import net.runelite.cache.util.KeyProvider;
 import net.runelite.cache.util.XteaKeyManager;
 import osrs.dev.collision.CollisionMapFactory;
+import osrs.dev.collision.ConfigurableCoordPacker;
 import osrs.dev.collision.ICollisionMapWriter;
 import osrs.dev.dumper.openrs2.OpenRS2;
 import osrs.dev.util.OptionsParser;
@@ -25,10 +32,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,6 +51,8 @@ public class Dumper
     public static final String XTEA_DIR = COLLISION_DIR + "/keys/";
     private final RegionLoader regionLoader;
     private final ObjectManager objectManager;
+    private final OverlayManager overlayManager;
+    private final UnderlayManager underlayManager;
     private final ICollisionMapWriter collisionMapWriter;
 
     private static OptionsParser optionsParser;
@@ -62,8 +68,12 @@ public class Dumper
     {
         this.regionLoader = new RegionLoader(store, keyProvider);
         this.objectManager = new ObjectManager(store);
+        this.overlayManager = new OverlayManager(store);
+        this.underlayManager = new UnderlayManager(store);
         this.collisionMapWriter = CollisionMapFactory.createWriter(format);
         objectManager.load();
+        overlayManager.load();
+        underlayManager.load();
         regionLoader.loadRegions();
         regionLoader.calculateBounds();
     }
@@ -77,6 +87,28 @@ public class Dumper
     private ObjectDefinition findObject(int id)
     {
         return objectManager.getObject(id);
+    }
+
+    /**
+     * Finds an overlay definition by id.
+     *
+     * @param id the id
+     * @return the overlay definition, or {@code null} if not found
+     */
+    private OverlayDefinition findOverlay(int id)
+    {
+        return overlayManager.provide(id);
+    }
+
+    /**
+     * Finds an underlay definition by id.
+     *
+     * @param id the id
+     * @return the underlay definition, or {@code null} if not found
+     */
+    private UnderlayDefinition findUnderlay(int id)
+    {
+        return underlayManager.provide(id);
     }
 
     /**
@@ -163,7 +195,6 @@ public class Dumper
             e.printStackTrace();
         }
     }
-
     /**
      * Processes a region.
      *
@@ -178,127 +209,309 @@ public class Dumper
                 int regionX = baseX + localX;
                 for (int localY = 0; localY < Region.Y; localY++) {
                     int regionY = baseY + localY;
+                    // processDebugging(region, localX, localY, z, regionX, regionY);
+                    processCollisionOfRegionCoordinate(region, localX, localY, z, regionX, regionY);
+                }
+            }
+        }
+    }
 
-                    boolean isBridge = (region.getTileSetting(1, localX, localY) & 2) != 0;
-                    int tileZ = z + (isBridge ? 1 : 0);
+    // 170 - 174 = Sharp crystal water
+    private final Map<Integer, String> DEBUG_TILES = ImmutableMap.<Integer, String>builder()
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2787, 3227, 0), "Water 1")
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2805, 3229, 0), "Water 131")
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2807, 3229, 0), "Water 130")
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2810, 3229, 0), "Water 185") // Smegma water
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(3005, 2924, 0), "Water 136") // Tempor storm water (135 - 138)
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2578, 2830, 0), "Water 176") // Inoculation station disease water
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2366, 2300, 0), "Water 184") // Tangled kelp water (other sprite ids: 182, 183)
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(1654, 2473, 0), "Water 144") // Sunbaked water / weird glitter water
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(1211, 3009, 0), "Water 188") // Jagged reefs water
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2376, 2305, 0), "Water 133") // Deep ocean water at south
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2787, 3274, 0), "Fishing platform tile")
+            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2737, 3299, 0), "Regular ground tile")
+            .build();
 
-                    for (Location loc : region.getLocations()) {
-                        Position pos = loc.getPosition();
-                        if (pos.getX() != regionX || pos.getY() != regionY || pos.getZ() != tileZ)
-                        {
-                            continue;
-                        }
 
-                        int type = loc.getType();
-                        int orientation = loc.getOrientation();
-                        ObjectDefinition object = findObject(loc.getId());
+    private void processDebugging(Region region, int localX, int localY, int plane, int regionX, int regionY) {
+        int packed = ConfigurableCoordPacker.JAGEX_PACKING.pack(regionX, regionY, plane);
+        if (!DEBUG_TILES.containsKey(packed)) {
+            return;
+        }
 
-                        if (object == null)
-                        {
-                            continue;
-                        }
+        StringBuilder output = new StringBuilder();
+        String tileName = DEBUG_TILES.get(packed);
 
-                        boolean block = (Exclusion.matches(loc.getId()) == null)
-                                ? !(object.getName().toLowerCase().contains("door") || object.getName().toLowerCase().contains("gate"))
-                                : Boolean.FALSE.equals(Exclusion.matches(loc.getId()));
+        output.append("=== DEBUG TILE: ").append(tileName).append(" (").append(regionX).append(", ").append(regionY).append(", ").append(plane).append(") ===\n");
+        output.append("Local coords: (").append(localX).append(", ").append(localY).append(")\n");
+        output.append("Region base: (").append(region.getBaseX()).append(", ").append(region.getBaseY()).append(")\n");
 
-                        block = object.getName().toLowerCase().contains("trapdoor") || block;
+        // Bridge detection
+        boolean isBridge = (region.getTileSetting(1, localX, localY) & 2) != 0;
+        int tileZ = plane + (isBridge ? 1 : 0);
+        output.append("Is bridge: ").append(isBridge).append(", tileZ: ").append(tileZ).append("\n");
 
-                        if (Exclusion.matches(loc.getId()) != null && Boolean.TRUE.equals(Exclusion.matches(loc.getId()))) {
-                            continue;
-                        }
+        // Raw Region array values for the calculated tileZ
+        int effectivePlane = plane < 3 ? tileZ : plane;
+        output.append("RAW REGION VALUES (using effectivePlane=").append(effectivePlane).append(")\n");
+        output.append("  tileHeights[").append(effectivePlane).append("][").append(localX).append("][").append(localY).append("] = ")
+                .append(region.getTileHeight(effectivePlane, localX, localY)).append("\n");
+        output.append("  tileSettings[").append(effectivePlane).append("][").append(localX).append("][").append(localY).append("] = ")
+                .append(region.getTileSetting(effectivePlane, localX, localY)).append("\n");
+        output.append("  underlayIds[").append(effectivePlane).append("][").append(localX).append("][").append(localY).append("] = ")
+                .append(region.getUnderlayId(effectivePlane, localX, localY)).append("\n");
+        output.append("  overlayIds[").append(effectivePlane).append("][").append(localX).append("][").append(localY).append("] = ")
+                .append(region.getOverlayId(effectivePlane, localX, localY)).append("\n");
+        output.append("  overlayPaths[").append(effectivePlane).append("][").append(localX).append("][").append(localY).append("] = ")
+                .append(region.getOverlayPath(effectivePlane, localX, localY)).append("\n");
+        output.append("  overlayRotations[").append(effectivePlane).append("][").append(localX).append("][").append(localY).append("] = ")
+                .append(region.getOverlayRotation(effectivePlane, localX, localY)).append("\n");
 
-                        int sizeX = (orientation == 1 || orientation == 3) ? object.getSizeY() : object.getSizeX();
-                        int sizeY = (orientation == 1 || orientation == 3) ? object.getSizeX() : object.getSizeY();
+        // Also log for all planes to show full context
+        output.append("RAW VALUES FOR ALL PLANES:\n");
+        for (int z = 0; z < 4; z++) {
+            output.append("  Plane ").append(z).append(": height=").append(region.getTileHeight(z, localX, localY))
+                    .append(", settings=").append(region.getTileSetting(z, localX, localY))
+                    .append(", underlay=").append(region.getUnderlayId(z, localX, localY))
+                    .append(", overlay=").append(region.getOverlayId(z, localX, localY))
+                    .append(", overlayPath=").append(region.getOverlayPath(z, localX, localY))
+                    .append(", overlayRot=").append(region.getOverlayRotation(z, localX, localY)).append("\n");
+        }
 
-                        // Handle walls and doors
-                        if (type >= 0 && type <= 3)
-                        {
-                            if (type == 0 || type == 2)
-                            {
-                                switch (orientation)
-                                {
-                                    case 0: // wall on west
-                                        collisionMapWriter.westBlocking(regionX, regionY, z, block);
-                                        break;
-                                    case 1: // wall on north
-                                        collisionMapWriter.northBlocking(regionX, regionY, z, block);
-                                        break;
-                                    case 2: // wall on east
-                                        collisionMapWriter.eastBlocking(regionX, regionY, z, block);
-                                        break;
-                                    case 3: // wall on south
-                                        collisionMapWriter.southBlocking(regionX, regionY, z, block);
-                                        break;
-                                }
-                            }
-                        }
+        // Processed values
+        int floorType = region.getTileSetting(effectivePlane, localX, localY);
+        int underlayId = region.getUnderlayId(effectivePlane, localX, localY);
+        int overlayId = region.getOverlayId(effectivePlane, localX, localY);
+        boolean noFloor = underlayId == 0 && overlayId == 0;
+        output.append("PROCESSED: Floor type/settings: ").append(floorType).append(", No floor: ").append(noFloor).append("\n");
 
-                        // Handle double walls
-                        if (type == 2)
-                        {
-                            if (orientation == 3) //west
-                            {
-                                collisionMapWriter.westBlocking(regionX, regionY, z, block);
-                            }
-                            else if (orientation == 0) //north
-                            {
-                                collisionMapWriter.northBlocking(regionX, regionY, z, block);
-                            }
-                            else if (orientation == 1) //east
-                            {
-                                collisionMapWriter.eastBlocking(regionX, regionY, z, block);
-                            }
-                            else if (orientation == 2) //south
-                            {
-                                collisionMapWriter.southBlocking(regionX, regionY, z, block);
-                            }
-                        }
+        // Underlay definition
+        if (underlayId > 0) {
+            UnderlayDefinition underlayDef = findUnderlay(underlayId - 1);
+            if (underlayDef != null) {
+                // Calculate HSL values to populate transient fields
+                underlayDef.calculateHsl();
 
-                        // Handle diagonal walls (simplified)
-                        if (type == 9)
-                        {
-                            collisionMapWriter.fullBlocking(regionX, regionY, z, block);
-                        }
+                output.append("UNDERLAY DEFINITION (ID ").append(underlayId).append("):\n");
+                output.append("  Color (RGB): ").append(underlayDef.getColor()).append("\n");
+                output.append("  Hue: ").append(underlayDef.getHue()).append("\n");
+                output.append("  Saturation: ").append(underlayDef.getSaturation()).append("\n");
+                output.append("  Lightness: ").append(underlayDef.getLightness()).append("\n");
+                output.append("  Hue Multiplier: ").append(underlayDef.getHueMultiplier()).append("\n");
+            } else {
+                output.append("UNDERLAY DEFINITION (ID ").append(underlayId).append("): Not found\n");
+            }
+        }
 
-                        //objects
-                        if (type == 22 || (type >= 9 && type <= 11) || (type >= 12 && type <= 21))
-                        {
-                            for (int x = 0; x < sizeX; x++)
-                            {
-                                for (int y = 0; y < sizeY; y++)
-                                {
-                                    if (object.getInteractType() != 0 && (object.getWallOrDoor() == 1 || (type >= 10 && type <= 21)))
-                                    {
-                                        collisionMapWriter.fullBlocking(regionX + x, regionY + y, z, block);
-                                    }
-                                }
-                            }
-                        }
-                    }
+        // Overlay definition
+        if (overlayId > 0) {
+            OverlayDefinition overlayDef = findOverlay(overlayId - 1);
+            if (overlayDef != null) {
+                // Calculate HSL values to populate transient fields
+                overlayDef.calculateHsl();
 
-                    // Handle tiles without a floor
-                    int underlayId = region.getUnderlayId(z < 3 ? tileZ : z, localX, localY);
-                    int overlayId = region.getOverlayId(z < 3 ? tileZ : z, localX, localY);
-                    boolean noFloor = underlayId == 0 && overlayId == 0;
+                output.append("OVERLAY DEFINITION (ID ").append(overlayId).append("):\n");
+                output.append("  Id inside: ").append(overlayDef.getId()).append("\n");
+                output.append("  Texture/Sprite ID: ").append(overlayDef.getTexture()).append("\n");
+                output.append("  RGB Color: ").append(overlayDef.getRgbColor()).append("\n");
+                output.append("  Secondary RGB Color: ").append(overlayDef.getSecondaryRgbColor()).append("\n");
+                output.append("  Hide Underlay: ").append(overlayDef.isHideUnderlay()).append("\n");
+                output.append("  Hue: ").append(overlayDef.getHue()).append("\n");
+                output.append("  Saturation: ").append(overlayDef.getSaturation()).append("\n");
+                output.append("  Lightness: ").append(overlayDef.getLightness()).append("\n");
+                output.append("  Other Hue (from secondary color): ").append(overlayDef.getOtherHue()).append("\n");
+                output.append("  Other Saturation (from secondary color): ").append(overlayDef.getOtherSaturation()).append("\n");
+                output.append("  Other Lightness (from secondary color): ").append(overlayDef.getOtherLightness()).append("\n");
+            } else {
+                output.append("OVERLAY DEFINITION (ID ").append(overlayId).append("): Not found\n");
+            }
+        }
 
-                    if(noFloor)
+        // Objects on this tile
+        output.append("Objects on this tile:\n");
+        int objectCount = 0;
+        for (Location loc : region.getLocations()) {
+            Position pos = loc.getPosition();
+            if (pos.getX() != regionX || pos.getY() != regionY || pos.getZ() != tileZ) {
+                continue;
+            }
+
+            objectCount++;
+            ObjectDefinition object = findObject(loc.getId());
+
+            output.append("  Object #").append(objectCount).append(": ID=").append(loc.getId())
+                    .append(", Type=").append(loc.getType())
+                    .append(", Orientation=").append(loc.getOrientation()).append("\n");
+
+            if (object != null) {
+                boolean isExcluded = Exclusion.matches(loc.getId()) != null;
+                Boolean exclusionValue = Exclusion.matches(loc.getId());
+                boolean block = (exclusionValue == null)
+                        ? !(object.getName().toLowerCase().contains("door") || object.getName().toLowerCase().contains("gate"))
+                        : Boolean.FALSE.equals(exclusionValue);
+                block = object.getName().toLowerCase().contains("trapdoor") || block;
+
+                int sizeX = (loc.getOrientation() == 1 || loc.getOrientation() == 3) ? object.getSizeY() : object.getSizeX();
+                int sizeY = (loc.getOrientation() == 1 || loc.getOrientation() == 3) ? object.getSizeX() : object.getSizeY();
+
+                output.append("    Name: '").append(object.getName()).append("', Size: ").append(sizeX).append("x").append(sizeY)
+                        .append(", InteractType: ").append(object.getInteractType())
+                        .append(", WallOrDoor: ").append(object.getWallOrDoor()).append("\n");
+                output.append("    Block: ").append(block).append(", Excluded: ").append(isExcluded)
+                        .append(" (value: ").append(exclusionValue).append(")\n");
+            } else {
+                output.append("    Object definition not found\n");
+            }
+        }
+
+        if (objectCount == 0) {
+            output.append("  (No objects on this tile)\n");
+        }
+
+        output.append("=== END DEBUG TILE ===\n");
+
+        // Write to file
+        String debugDir = COLLISION_DIR + "/debug/";
+        ensureDirectory(debugDir);
+        String fileName = String.format("debug_%s_%d_%d_%d.txt", tileName.replaceAll("[^a-zA-Z0-9]", "_"), regionX, regionY, plane);
+        File debugFile = new File(debugDir + fileName);
+
+        try (java.io.FileWriter writer = new java.io.FileWriter(debugFile)) {
+            writer.write(output.toString());
+            log.info("Debug tile info written to: {}", debugFile.getAbsolutePath());
+        } catch (IOException e) {
+            log.error("Failed to write debug file for tile {} at ({}, {}, {})", tileName, regionX, regionY, plane, e);
+        }
+    }
+
+
+    private void processTileTypesOfRegionCoordinate(Region region, int localX, int localY, int plane, int regionX, int regionY) {
+        byte tileTypeFlags = 0;
+
+        // TODO: Get overlay
+        // TODO: Get overlay sprite id
+        // TODO: If overlay sprite id is found in TileTypeFlags.SPRITE_ID_TO_TILE_TYPE_FLAGS map, set those flags
+        // TODO: Store flags in some data structure (Another bitmap?)
+    }
+
+    private void processCollisionOfRegionCoordinate(Region region, int localX, int localY, int plane, int regionX, int regionY) {
+        boolean isBridge = (region.getTileSetting(1, localX, localY) & 2) != 0;
+        int tileZ = plane + (isBridge ? 1 : 0);
+
+        for (Location loc : region.getLocations()) {
+            Position pos = loc.getPosition();
+            if (pos.getX() != regionX || pos.getY() != regionY || pos.getZ() != tileZ)
+            {
+                continue;
+            }
+
+            int type = loc.getType();
+            int orientation = loc.getOrientation();
+            ObjectDefinition object = findObject(loc.getId());
+
+            if (object == null)
+            {
+                continue;
+            }
+
+            boolean block = (Exclusion.matches(loc.getId()) == null)
+                    ? !(object.getName().toLowerCase().contains("door") || object.getName().toLowerCase().contains("gate"))
+                    : Boolean.FALSE.equals(Exclusion.matches(loc.getId()));
+
+            block = object.getName().toLowerCase().contains("trapdoor") || block;
+
+            if (Exclusion.matches(loc.getId()) != null && Boolean.TRUE.equals(Exclusion.matches(loc.getId()))) {
+                continue;
+            }
+
+            int sizeX = (orientation == 1 || orientation == 3) ? object.getSizeY() : object.getSizeX();
+            int sizeY = (orientation == 1 || orientation == 3) ? object.getSizeX() : object.getSizeY();
+
+            // Handle walls and doors
+            if (type >= 0 && type <= 3)
+            {
+                if (type == 0 || type == 2)
+                {
+                    switch (orientation)
                     {
-                        collisionMapWriter.fullBlocking(regionX, regionY, z, true);
-                    }
-
-                    // Handle no-move tiles
-                    int floorType = region.getTileSetting(z < 3 ? tileZ : z, localX, localY);
-                    if (floorType == 1 || // water, rooftop wall
-                            floorType == 3 || // bridge wall
-                            floorType == 5 || // house wall/roof
-                            floorType == 7 || // house wall
-                            noFloor)
-                    {
-                        collisionMapWriter.fullBlocking(regionX, regionY, z, true);
+                        case 0: // wall on west
+                            collisionMapWriter.westBlocking(regionX, regionY, plane, block);
+                            break;
+                        case 1: // wall on north
+                            collisionMapWriter.northBlocking(regionX, regionY, plane, block);
+                            break;
+                        case 2: // wall on east
+                            collisionMapWriter.eastBlocking(regionX, regionY, plane, block);
+                            break;
+                        case 3: // wall on south
+                            collisionMapWriter.southBlocking(regionX, regionY, plane, block);
+                            break;
                     }
                 }
             }
+
+            // Handle double walls
+            if (type == 2)
+            {
+                if (orientation == 3) //west
+                {
+                    collisionMapWriter.westBlocking(regionX, regionY, plane, block);
+                }
+                else if (orientation == 0) //north
+                {
+                    collisionMapWriter.northBlocking(regionX, regionY, plane, block);
+                }
+                else if (orientation == 1) //east
+                {
+                    collisionMapWriter.eastBlocking(regionX, regionY, plane, block);
+                }
+                else if (orientation == 2) //south
+                {
+                    collisionMapWriter.southBlocking(regionX, regionY, plane, block);
+                }
+            }
+
+            // Handle diagonal walls (simplified)
+            if (type == 9)
+            {
+                collisionMapWriter.fullBlocking(regionX, regionY, plane, block);
+            }
+
+            //objects
+            if (type == 22 || (type >= 9 && type <= 11) || (type >= 12 && type <= 21))
+            {
+                for (int x = 0; x < sizeX; x++)
+                {
+                    for (int y = 0; y < sizeY; y++)
+                    {
+                        if (object.getInteractType() != 0 && (object.getWallOrDoor() == 1 || (type >= 10 && type <= 21)))
+                        {
+                            collisionMapWriter.fullBlocking(regionX + x, regionY + y, plane, block);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Handle tiles without a floor
+        int underlayId = region.getUnderlayId(plane < 3 ? tileZ : plane, localX, localY);
+        int overlayId = region.getOverlayId(plane < 3 ? tileZ : plane, localX, localY);
+        boolean noFloor = underlayId == 0 && overlayId == 0;
+
+        if(noFloor)
+        {
+            collisionMapWriter.fullBlocking(regionX, regionY, plane, true);
+        }
+
+        // Handle no-move tiles
+        int floorType = region.getTileSetting(plane < 3 ? tileZ : plane, localX, localY);
+        if (floorType == 1 || // water, rooftop wall
+                floorType == 3 || // bridge wall
+                floorType == 5 || // house wall/roof
+                floorType == 7 || // house wall
+                noFloor)
+        {
+            collisionMapWriter.fullBlocking(regionX, regionY, plane, true);
         }
     }
 

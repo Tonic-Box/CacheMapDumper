@@ -2,8 +2,8 @@ package osrs.dev.reader;
 
 import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
 import osrs.dev.collision.ICollisionMap;
-import osrs.dev.collision.ICoordPacking;
-import osrs.dev.collision.ConfigurablePacking;
+import osrs.dev.collision.ICoordPacker;
+import osrs.dev.collision.ConfigurableCoordPacker;
 
 import java.io.*;
 
@@ -15,7 +15,7 @@ import java.io.*;
  */
 public class SparseBitSetCollisionMap implements ICollisionMap {
     private final SparseBitSet bitSet;
-    private final ICoordPacking packing;
+    private final ICoordPacker packing;
 
     /**
      * Creates a new collision map with default legacy packing.
@@ -23,7 +23,7 @@ public class SparseBitSetCollisionMap implements ICollisionMap {
      * @param bitSet The bit set.
      */
     private SparseBitSetCollisionMap(SparseBitSet bitSet) {
-        this(bitSet, ConfigurablePacking.JAGEX_PACKING);
+        this(bitSet, ConfigurableCoordPacker.JAGEX_PACKING);
     }
 
     /**
@@ -32,7 +32,7 @@ public class SparseBitSetCollisionMap implements ICollisionMap {
      * @param bitSet The bit set.
      * @param packing The coordinate packing to use.
      */
-    private SparseBitSetCollisionMap(SparseBitSet bitSet, ICoordPacking packing) {
+    private SparseBitSetCollisionMap(SparseBitSet bitSet, ICoordPacker packing) {
         this.bitSet = bitSet;
         this.packing = packing;
     }
@@ -121,7 +121,7 @@ public class SparseBitSetCollisionMap implements ICollisionMap {
      * @throws ClassNotFoundException On class not found.
      */
     public static SparseBitSetCollisionMap load(String filePath) throws IOException, ClassNotFoundException {
-        return load(filePath, ConfigurablePacking.JAGEX_PACKING);
+        return load(filePath, ConfigurableCoordPacker.JAGEX_PACKING);
     }
 
     /**
@@ -133,7 +133,7 @@ public class SparseBitSetCollisionMap implements ICollisionMap {
      * @throws IOException            On file read error.
      * @throws ClassNotFoundException On class not found.
      */
-    public static SparseBitSetCollisionMap load(String filePath, ICoordPacking packing) throws IOException, ClassNotFoundException {
+    public static SparseBitSetCollisionMap load(String filePath, ICoordPacker packing) throws IOException, ClassNotFoundException {
         File file = new File(filePath);
 
         if (!file.exists() || !file.isFile()) {

@@ -4,13 +4,24 @@ package osrs.dev.collision;
  * Configurable coordinate packing with customizable bit layouts.
  * Allows different X/Y/plane bit widths for encoding coordinates into a single int.
  */
-public class ConfigurablePacking implements ICoordPacking {
+public class ConfigurableCoordPacker implements ICoordPacker {
 
-    /** Jagex format: 14 bits X, 14 bits Y, 4 bits plane */
-    public static final ConfigurablePacking JAGEX_PACKING = new ConfigurablePacking(
+    /**
+     * Jagex format: 14 bits X, 14 bits Y, 4 bits plane
+     */
+    public static final ConfigurableCoordPacker JAGEX_PACKING = new ConfigurableCoordPacker(
             16383, 0,   // xMask, xShift
             16383, 14,  // yMask, yShift
             0b1111, 28     // planeMask, planeShift
+    );
+    /**
+     * Compact format: 13 bits X, 13 bits Y, 2 bits plane,
+     * leaving 1 bit for E_FLAG, 4 bits for tile type, 1 bit left over for whatever
+     */
+    public static final ConfigurableCoordPacker COMPACT_13BIT_PACKING = new ConfigurableCoordPacker(
+            8191, 0,   // xMask, xShift
+            8191, 13,  // yMask, yShift
+            0b11, 26     // planeMask, planeShift
     );
 
     private final int xMask;
@@ -30,7 +41,7 @@ public class ConfigurablePacking implements ICoordPacking {
      * @param planeMask  bitmask for plane (e.g., 0b1111 for 4 bits)
      * @param planeShift bit position where plane starts (e.g., 28)
      */
-    public ConfigurablePacking(int xMask, int xShift, int yMask, int yShift, int planeMask, int planeShift) {
+    public ConfigurableCoordPacker(int xMask, int xShift, int yMask, int yShift, int planeMask, int planeShift) {
         this.xMask = xMask;
         this.xShift = xShift;
         this.yMask = yMask;

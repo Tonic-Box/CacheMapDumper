@@ -1,10 +1,9 @@
 package osrs.dev.dumper;
 
 import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
-import osrs.dev.collision.ICollisionMap;
 import osrs.dev.collision.ICollisionMapWriter;
-import osrs.dev.collision.ICoordPacking;
-import osrs.dev.collision.ConfigurablePacking;
+import osrs.dev.collision.ICoordPacker;
+import osrs.dev.collision.ConfigurableCoordPacker;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,13 +17,13 @@ import java.io.ObjectOutputStream;
  */
 public class SparseBitsetMapWriter implements ICollisionMapWriter {
     private final SparseBitSet bitSet;
-    private final ICoordPacking packing;
+    private final ICoordPacker packing;
 
     public SparseBitsetMapWriter() {
-        this(ConfigurablePacking.JAGEX_PACKING);
+        this(ConfigurableCoordPacker.JAGEX_PACKING);
     }
 
-    public SparseBitsetMapWriter(ICoordPacking packing) {
+    public SparseBitsetMapWriter(ICoordPacker packing) {
         this.bitSet = new SparseBitSet();
         this.packing = packing;
     }

@@ -13,13 +13,13 @@ import java.util.zip.GZIPOutputStream;
 public class RoaringCollisionMapWriter implements ICollisionMapWriter {
 
     private final RoaringBitmap bitmap;
-    private final ICoordPacking packing;
+    private final ICoordPacker packing;
 
     public RoaringCollisionMapWriter() {
-        this(ConfigurablePacking.JAGEX_PACKING);
+        this(ConfigurableCoordPacker.JAGEX_PACKING);
     }
 
-    public RoaringCollisionMapWriter(ICoordPacking packing) {
+    public RoaringCollisionMapWriter(ICoordPacker packing) {
         this.bitmap = new RoaringBitmap();
         this.packing = packing;
     }

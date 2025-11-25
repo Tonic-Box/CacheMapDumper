@@ -5,7 +5,6 @@ import org.roaringbitmap.RoaringBitmap;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * RoaringBitmap-based collision map with configurable coordinate packing.
@@ -16,17 +15,17 @@ import java.util.zip.GZIPOutputStream;
 public class RoaringCollisionMap implements ICollisionMap {
 
     private final RoaringBitmap bitmap;
-    private final ICoordPacking packing;
+    private final ICoordPacker packing;
 
     public RoaringCollisionMap() {
-        this(new RoaringBitmap(), ConfigurablePacking.JAGEX_PACKING);
+        this(new RoaringBitmap(), ConfigurableCoordPacker.JAGEX_PACKING);
     }
 
     public RoaringCollisionMap(RoaringBitmap bitmap) {
-        this(bitmap, ConfigurablePacking.JAGEX_PACKING);
+        this(bitmap, ConfigurableCoordPacker.JAGEX_PACKING);
     }
 
-    public RoaringCollisionMap(RoaringBitmap bitmap, ICoordPacking packing) {
+    public RoaringCollisionMap(RoaringBitmap bitmap, ICoordPacker packing) {
         this.bitmap = bitmap;
         this.packing = packing;
     }
@@ -50,7 +49,7 @@ public class RoaringCollisionMap implements ICollisionMap {
      * @throws IOException if an I/O error occurs
      */
     public static RoaringCollisionMap load(String filePath) throws IOException {
-        return load(filePath, ConfigurablePacking.JAGEX_PACKING);
+        return load(filePath, ConfigurableCoordPacker.JAGEX_PACKING);
     }
 
     /**
@@ -62,7 +61,7 @@ public class RoaringCollisionMap implements ICollisionMap {
      * @return loaded collision map, or null if file not found
      * @throws IOException if an I/O error occurs
      */
-    public static RoaringCollisionMap load(String filePath, ICoordPacking packing) throws IOException {
+    public static RoaringCollisionMap load(String filePath, ICoordPacker packing) throws IOException {
         File file = new File(filePath);
         if (!file.exists() || !file.isFile()) {
             System.err.println("File not found: " + filePath);
