@@ -27,6 +27,7 @@ public class ConfigManager
         var map = new HashMap<String, Object>();
         map.put("output", System.getProperty("user.home") + "/VitaX/map.dat");
         map.put("fresh_cache", true);
+        map.put("format", "RoaringBitmap");
         map.put("bg_color", "#F8F8F8");
         map.put("grid_color", "#00FFFF");
         map.put("collision_color", "#FF0000");
@@ -40,6 +41,10 @@ public class ConfigManager
 
     public boolean freshCache() {
         return getBoolean("fresh_cache");
+    }
+
+    public String format() {
+        return getString("format");
     }
 
     public Color bgColor() {
@@ -80,6 +85,10 @@ public class ConfigManager
 
     public void setFreshCache(boolean fresh) {
         setProperty("fresh_cache", fresh);
+    }
+
+    public void setFormat(String format) {
+        setProperty("format", format);
     }
 
     public void setBgColor(String colorHex) {
@@ -199,13 +208,10 @@ public class ConfigManager
      */
     private void ensure(Map<String,Object> configMap)
     {
-        AtomicBoolean requiredChange = new AtomicBoolean(false);
         configMap.forEach((key, value) -> {
             if (getProperty(key) == null) {
                 addProperty(key, value);
-                requiredChange.set(true);
             }
         });
-        requiredChange.get();
     }
 }

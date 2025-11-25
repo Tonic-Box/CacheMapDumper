@@ -24,6 +24,7 @@ public class UIFrame extends JFrame {
     private final JButton upButton;
     private JTextField pathField;
     private JCheckBox downloadCacheCheckBox;
+    private JComboBox<String> formatComboBox;
     private final ViewPort viewPort;
     private final WorldPoint base = new WorldPoint(3207, 3213, 0);
     private final WorldPoint center = new WorldPoint(0,0,0);
@@ -250,7 +251,7 @@ public class UIFrame extends JFrame {
         updatePanel.setBorder(BorderFactory.createTitledBorder("Update Collision"));
 
         // Create a panel for input fields
-        JPanel inputPanel = new JPanel(new GridLayout(3, 1));
+        JPanel inputPanel = new JPanel(new GridLayout(5, 1));
 
         // Add a label and text field for collision map path
         JLabel pathLabel = new JLabel("Collision Map Path:");
@@ -266,6 +267,14 @@ public class UIFrame extends JFrame {
         downloadCacheCheckBox.setSelected(Main.getConfigManager().freshCache());
         downloadCacheCheckBox.addItemListener(e -> Main.getConfigManager().setFreshCache(downloadCacheCheckBox.isSelected()));
         inputPanel.add(downloadCacheCheckBox);
+
+        // Add format selection combo box
+        JLabel formatLabel = new JLabel("Serialization Format:");
+        formatComboBox = new JComboBox<>(new String[]{"RoaringBitmap", "SparseBitSet"});
+        formatComboBox.setSelectedItem(Main.getConfigManager().format());
+        formatComboBox.addActionListener(e -> Main.getConfigManager().setFormat((String) formatComboBox.getSelectedItem()));
+        inputPanel.add(formatLabel);
+        inputPanel.add(formatComboBox);
 
         // Add the Update Collision button at the bottom
         updatePanel.add(getUpdateButton(), BorderLayout.SOUTH);
@@ -301,6 +310,8 @@ public class UIFrame extends JFrame {
             options.add(pathField.getText());
             options.add("-fresh");
             options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
+            options.add("-format");
+            options.add((String) formatComboBox.getSelectedItem());
 
             ThreadPool.submit(() -> {
                 try

@@ -44,7 +44,7 @@ public class OpenRS2
      * @throws IOException if an I/O error occurs
      */
     public static void downloadXTEA(GameInfo gameInfo) throws IOException {
-        String api = API_BASE + "/caches/" + gameInfo.getScope() + "/" + gameInfo.getId() + "/keys.json";
+        String api = API_BASE + "caches/" + gameInfo.getScope() + "/" + gameInfo.getId() + "/keys.json";
 
         URL url = new URL(api);
         try (InputStream in = url.openStream();
@@ -64,7 +64,7 @@ public class OpenRS2
      * @param gameInfo the game info
      */
     private static void downloadCache(GameInfo gameInfo) {
-        String api = API_BASE + "/caches/" + gameInfo.getScope() + "/" + gameInfo.getId() + "/disk.zip";
+        String api = API_BASE + "caches/" + gameInfo.getScope() + "/" + gameInfo.getId() + "/disk.zip";
         try (InputStream in = new URL(api).openStream();
              ZipInputStream zis = new ZipInputStream(in)) {
 

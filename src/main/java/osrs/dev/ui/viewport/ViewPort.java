@@ -103,7 +103,7 @@ public class ViewPort
             for(int y = 0; y < cellDim; y++)
             {
                 cellPoint = new Point(x, y);
-                flag = Main.getCollision().all((short)(base.getX() + x), (short)(base.getY() + y), (byte)displayPlane);
+                flag = Main.getCollision().all(base.getX() + x, base.getY() + y, displayPlane);
                 cells[x][y] = new Cell(flag, cellPoint);
             }
         }

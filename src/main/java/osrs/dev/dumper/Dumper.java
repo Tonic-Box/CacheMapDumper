@@ -3,6 +3,7 @@ package osrs.dev.dumper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.cache.ObjectManager;
 import net.runelite.cache.definitions.ObjectDefinition;
 import net.runelite.cache.fs.Store;
@@ -12,6 +13,8 @@ import net.runelite.cache.region.Region;
 import net.runelite.cache.region.RegionLoader;
 import net.runelite.cache.util.KeyProvider;
 import net.runelite.cache.util.XteaKeyManager;
+import osrs.dev.collision.CollisionMapFactory;
+import osrs.dev.collision.ICollisionMapWriter;
 import osrs.dev.dumper.openrs2.OpenRS2;
 import osrs.dev.util.OptionsParser;
 import osrs.dev.util.ProgressBar;
@@ -35,6 +38,7 @@ import java.util.concurrent.Future;
  * Dumps collision data from the cache.
  */
 @Getter
+@Slf4j
 public class Dumper
 {
     public static File OUTPUT_MAP = new File(System.getProperty("user.home") + "/VitaX/collision/map.dat");
@@ -43,9 +47,10 @@ public class Dumper
     public static final String XTEA_DIR = COLLISION_DIR + "/keys/";
     private final RegionLoader regionLoader;
     private final ObjectManager objectManager;
-    private final CollisionMapWriter collisionMapWriter;
+    private final ICollisionMapWriter collisionMapWriter;
 
     private static OptionsParser optionsParser;
+    private static CollisionMapFactory.Format format = CollisionMapFactory.Format.ROARING_GZIP;
 
     /**
      * Creates a new dumper.
@@ -57,7 +62,7 @@ public class Dumper
     {
         this.regionLoader = new RegionLoader(store, keyProvider);
         this.objectManager = new ObjectManager(store);
-        this.collisionMapWriter = new CollisionMapWriter();
+        this.collisionMapWriter = CollisionMapFactory.createWriter(format);
         objectManager.load();
         regionLoader.loadRegions();
         regionLoader.calculateBounds();
@@ -84,10 +89,17 @@ public class Dumper
     {
         optionsParser = new OptionsParser(args);
         OUTPUT_MAP = new File(optionsParser.getPath());
+        format = optionsParser.getFormat();
+
+        log.info("Dumper options - path: {}, format: {}", OUTPUT_MAP.getPath(), format);
         ensureDirectory(COLLISION_DIR);
         ensureDirectory(XTEA_DIR);
-        if(optionsParser.isFreshCache() || isDirectoryEmpty(new File(CACHE_DIR)) || !(new File(CACHE_DIR)).exists())
+        boolean fresh = optionsParser.isFreshCache();
+        boolean emptyDir = isDirectoryEmpty(new File(COLLISION_DIR));
+        boolean cacheDoesntExist = !(new File(COLLISION_DIR)).exists();
+        if(fresh || emptyDir || cacheDoesntExist)
         {
+            log.debug("Downloading fresh cache and XTEA keys (fresh={}, emptyDir={}, cacheDoesntExist={})", fresh, emptyDir, cacheDoesntExist);
             OpenRS2.update();
         }
 
@@ -143,7 +155,7 @@ public class Dumper
                 progressBar.update(++n);
             }
             dumper.collisionMapWriter.save(OUTPUT_MAP.getPath());
-            System.out.println("Wrote collision map to " + OUTPUT_MAP);
+            log.info("Wrote collision map to {}", OUTPUT_MAP.getPath());
         }
         catch (ExecutionException | InterruptedException e)
         {
@@ -207,16 +219,16 @@ public class Dumper
                                 switch (orientation)
                                 {
                                     case 0: // wall on west
-                                        collisionMapWriter.westBlocking((short) regionX, (short) regionY, (byte) z, block);
+                                        collisionMapWriter.westBlocking(regionX, regionY, z, block);
                                         break;
                                     case 1: // wall on north
-                                        collisionMapWriter.northBlocking((short) regionX, (short) regionY, (byte) z, block);
+                                        collisionMapWriter.northBlocking(regionX, regionY, z, block);
                                         break;
                                     case 2: // wall on east
-                                        collisionMapWriter.eastBlocking((short) regionX, (short) regionY, (byte) z, block);
+                                        collisionMapWriter.eastBlocking(regionX, regionY, z, block);
                                         break;
                                     case 3: // wall on south
-                                        collisionMapWriter.southBlocking((short) regionX, (short) regionY, (byte) z, block);
+                                        collisionMapWriter.southBlocking(regionX, regionY, z, block);
                                         break;
                                 }
                             }
@@ -227,26 +239,26 @@ public class Dumper
                         {
                             if (orientation == 3) //west
                             {
-                                collisionMapWriter.westBlocking((short) regionX, (short) regionY, (byte) z, block);
+                                collisionMapWriter.westBlocking(regionX, regionY, z, block);
                             }
                             else if (orientation == 0) //north
                             {
-                                collisionMapWriter.northBlocking((short) regionX, (short) regionY, (byte) z, block);
+                                collisionMapWriter.northBlocking(regionX, regionY, z, block);
                             }
                             else if (orientation == 1) //east
                             {
-                                collisionMapWriter.eastBlocking((short) regionX, (short) regionY, (byte) z, block);
+                                collisionMapWriter.eastBlocking(regionX, regionY, z, block);
                             }
                             else if (orientation == 2) //south
                             {
-                                collisionMapWriter.southBlocking((short) regionX, (short) regionY, (byte) z, block);
+                                collisionMapWriter.southBlocking(regionX, regionY, z, block);
                             }
                         }
 
                         // Handle diagonal walls (simplified)
                         if (type == 9)
                         {
-                            collisionMapWriter.fullBlocking((short) regionX, (short) regionY, (byte) z, block);
+                            collisionMapWriter.fullBlocking(regionX, regionY, z, block);
                         }
 
                         //objects
@@ -258,7 +270,7 @@ public class Dumper
                                 {
                                     if (object.getInteractType() != 0 && (object.getWallOrDoor() == 1 || (type >= 10 && type <= 21)))
                                     {
-                                        collisionMapWriter.fullBlocking((short) (regionX + x), (short) (regionY + y), (byte) z, block);
+                                        collisionMapWriter.fullBlocking(regionX + x, regionY + y, z, block);
                                     }
                                 }
                             }
@@ -272,7 +284,7 @@ public class Dumper
 
                     if(noFloor)
                     {
-                        collisionMapWriter.fullBlocking((short) regionX, (short) regionY, (byte) z, true);
+                        collisionMapWriter.fullBlocking(regionX, regionY, z, true);
                     }
 
                     // Handle no-move tiles
@@ -283,7 +295,7 @@ public class Dumper
                             floorType == 7 || // house wall
                             noFloor)
                     {
-                        collisionMapWriter.fullBlocking((short) regionX, (short) regionY, (byte) z, true);
+                        collisionMapWriter.fullBlocking(regionX, regionY, z, true);
                     }
                 }
             }

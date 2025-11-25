@@ -23,13 +23,17 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.24")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
     implementation(group = "net.runelite", name = "cache", version = "latest.release")
-    //implementation(group = "net.unethicalite", name = "cache", version = "1.0.20-EXPERIMENTAL")
     implementation("com.google.code.gson:gson:2.8.9")
     implementation("com.formdev:flatlaf:2.4")
     implementation("com.google.guava:guava:32.0.0-android")
     implementation("org.apache.commons:commons-collections4:4.3")
     implementation("commons-beanutils:commons-beanutils:1.9.4")
     implementation("org.apache.commons:commons-configuration2:2.10.1")
+    implementation("org.roaringbitmap:RoaringBitmap:1.0.6")
+
+    // SLF4J and Logback
+    implementation("org.slf4j:slf4j-api:2.0.9")
+    implementation("ch.qos.logback:logback-classic:1.4.11")
 }
 
 
