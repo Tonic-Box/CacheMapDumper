@@ -15,42 +15,29 @@ Z range: 0 to 3 (span: 4)
 */
 
     /**
-     * Optimized full packing: 13 bits X, 14 bits Y, 2 bits plane
+     * Optimized full packing: 12 bits X, 14 bits Y, 2 bits plane
      * using minimal amount of bits that can pack the full coordinate ranges of the game world.
-     * Can index up to 4 bits of data per coordinate (RoaringBitmap with 32 bit indexing supported).
+     * Can index up to 5 bits of data per coordinate (RoaringBitmap with 32 bit indexing supported).
      */
-    public static final ConfigurableCoordIndexer ROARINGBITMAP_4BIT_DATA_COORD_INDEXER = new Builder()
+    public static final ConfigurableCoordIndexer ROARINGBITMAP_5BIT_DATA_COORD_INDEXER = new Builder()
             .maxBits(32)
-            .xBits(13)
-            .xBase(700) // X Lower bound as we know it is 960, but 700 gives some extra room if the map expands
+            .xBits(12)
+            .xBase(480) // 480 instead of 960 as base to allow for the X axis to expand up to 480 - 4576 range
             .yBits(14) // No Y base needed as the span fits into 14 bits regardless
             .planeBits(2)
             .build();
 
     /**
-     * Optimized full packing: 13 bits X, 14 bits Y, 2 bits plane
+     * Optimized full packing: 12 bits X, 14 bits Y, 2 bits plane
      * using minimal amount of bits that can pack the full coordinate ranges of the game world.
-     * Can index up to 3 bits of data per coordinate for unsigned int (SparseBitSet with only 31 bit indexing supported).
+     * Can index up to 4 bits of data per coordinate for SparseBitSet with only 31 bit indexing supported.
      */
-    public static final ConfigurableCoordIndexer SPARSEBITSET_3BIT_DATA_COORD_INDEXER = new Builder()
+    public static final ConfigurableCoordIndexer SPARSEBITSET_4BIT_DATA_COORD_INDEXER = new Builder()
             .maxBits(31)
-            .xBits(13)
-            .xBase(700)
+            .xBits(12)
+            .xBase(480) // 480 instead of 960 as base to allow for the X axis to expand up to 480 - 4576 range
             .yBits(14) // No Y base needed as the span fits into 14 bits regardless
             .planeBits(2)
-            .build();
-
-    /**
-     * 13 bits X, 14 bits Y, 1 bits plane
-     * by leaving out 1 bit for plane (only supports planes 0 and 1).
-     * we index up to 4 bits of data per coordinate for unsigned int (SparseBitSet with only 31 bit indexing supported).
-     */
-    public static final ConfigurableCoordIndexer SPARSEBITSET_4BIT_DATA_COORD_INDEXER_PLANES01 = new Builder()
-            .maxBits(31)
-            .xBits(13)
-            .xBase(700)
-            .yBits(14) // No Y base needed as the span fits into 14 bits regardless
-            .planeBits(1)
             .build();
 
 

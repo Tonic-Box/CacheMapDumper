@@ -33,7 +33,6 @@ public class RoaringCollisionMapWriter implements ICollisionMapWriter {
 
     @Override
     public void setPathableNorth(int x, int y, int plane, boolean pathable) {
-        // Invert: pathable=true means NOT blocked, so set bit to false
         setBlocked(INDEXER.packToBitmapIndex(x, y, plane, RoaringCollisionMap.NORTH_DATA_BIT_POS), !pathable);
     }
 

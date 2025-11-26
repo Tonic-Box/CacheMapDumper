@@ -11,7 +11,7 @@ import java.io.ObjectInputStream;
 
 public class SparseBitSetTileTypeMap implements ITileTypeMap {
      static final ConfigurableCoordIndexer INDEXER
-             = ConfigurableCoordIndexer.SPARSEBITSET_4BIT_DATA_COORD_INDEXER_PLANES01;
+             = ConfigurableCoordIndexer.SPARSEBITSET_4BIT_DATA_COORD_INDEXER;
 
     private final SparseBitSet bitSet;
 

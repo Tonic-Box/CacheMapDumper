@@ -11,7 +11,7 @@ import java.io.ObjectInputStream;
 
 public class SparseBitSetCollisionMap implements ICollisionMap {
     static final ConfigurableCoordIndexer INDEXER
-            = ConfigurableCoordIndexer.SPARSEBITSET_3BIT_DATA_COORD_INDEXER;
+            = ConfigurableCoordIndexer.SPARSEBITSET_4BIT_DATA_COORD_INDEXER;
     static final int NORTH_DATA_BIT_POS = 0;
     static final int EAST_DATA_BIT_POS = 1;
     private final SparseBitSet bitSet;

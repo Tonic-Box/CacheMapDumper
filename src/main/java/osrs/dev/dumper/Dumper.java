@@ -269,23 +269,23 @@ public class Dumper
     }
 
     private final Map<Integer, String> DEBUG_TILES = ImmutableMap.<Integer, String>builder()
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(2177, 3040, 0, 0), "Disease water 1")
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(2177, 3043, 0, 0), "Disease water 2")
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2719, 0, 0), "Storm water 1")
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2715, 0, 0), "Storm water 2")
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2712, 0, 0), "Storm water 3")
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2707, 0, 0), "Storm water 4")
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2702, 0, 0), "Storm water 5")
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2366, 0, 0), "Kelp water 1")
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2364, 0, 0), "Kelp water 2")
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2362, 0, 0), "Kelp water 3")
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2358, 0, 0), "Kelp water 4")
-            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2355, 0, 0), "Kelp water 5")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(2177, 3040, 0, 0), "Disease water 1")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(2177, 3043, 0, 0), "Disease water 2")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2719, 0, 0), "Storm water 1")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2715, 0, 0), "Storm water 2")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2712, 0, 0), "Storm water 3")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2707, 0, 0), "Storm water 4")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2702, 0, 0), "Storm water 5")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2366, 0, 0), "Kelp water 1")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2364, 0, 0), "Kelp water 2")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2362, 0, 0), "Kelp water 3")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2358, 0, 0), "Kelp water 4")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2355, 0, 0), "Kelp water 5")
             .build();
 
 
     private void processDebugging(Region region, int localX, int localY, int plane, int regionX, int regionY) {
-        int packed = ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(regionX, regionY, plane, 0);
+        int packed = ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER.packToBitmapIndex(regionX, regionY, plane, 0);
         if (!DEBUG_TILES.containsKey(packed)) {
             return;
         }

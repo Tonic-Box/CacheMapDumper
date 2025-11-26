@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 
 public class RoaringTileTypeMap implements ITileTypeMap {
     static final ConfigurableCoordIndexer INDEXER
-            = ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER;
+            = ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER;
 
     private final RoaringBitmap bitmap;
 

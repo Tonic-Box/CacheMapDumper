@@ -11,26 +11,26 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("Constructor should calculate correct masks and shifts")
     void testConstructorCalculatesMasksAndShifts() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 13, 0, 14, 0, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 12, 0, 14, 0, 2, 0);
 
-        assertEquals(8191, indexer.getXMask());      // (1 << 13) - 1
+        assertEquals(4095, indexer.getXMask());      // (1 << 12) - 1
         assertEquals(0, indexer.getXShift());
         assertEquals(16383, indexer.getYMask());     // (1 << 14) - 1
-        assertEquals(13, indexer.getYShift());       // xBits
+        assertEquals(12, indexer.getYShift());       // xBits
         assertEquals(3, indexer.getPlaneMask());     // (1 << 2) - 1
-        assertEquals(27, indexer.getPlaneShift());   // xBits + yBits
+        assertEquals(26, indexer.getPlaneShift());   // xBits + yBits
     }
 
     @Test
     @DisplayName("Constructor should calculate correct maxDataBitIndex")
     void testConstructorCalculatesMaxDataBitIndex() {
-        // 32-bit capacity, 13+14+2=29 bits used, should have 3 data bits left
-        ConfigurableCoordIndexer indexer32 = new ConfigurableCoordIndexer(32, false, 13, 0, 14, 0, 2, 0);
-        assertEquals(3, indexer32.getMaxDataBitIndex());
+        // 32-bit capacity, 12+14+2=28 bits used, should have 4 data bits left
+        ConfigurableCoordIndexer indexer32 = new ConfigurableCoordIndexer(32, false, 12, 0, 14, 0, 2, 0);
+        assertEquals(4, indexer32.getMaxDataBitIndex());
 
-        // 31-bit capacity (signed), 13+14+2=29 bits used, should have 2 data bits left
-        ConfigurableCoordIndexer indexer31 = new ConfigurableCoordIndexer(31, false, 13, 0, 14, 0, 2, 0);
-        assertEquals(2, indexer31.getMaxDataBitIndex());
+        // 31-bit capacity (signed), 12+14+2=28 bits used, should have 3 data bits left
+        ConfigurableCoordIndexer indexer31 = new ConfigurableCoordIndexer(31, false, 12, 0, 14, 0, 2, 0);
+        assertEquals(3, indexer31.getMaxDataBitIndex());
     }
 
     @Test
@@ -45,10 +45,10 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("Constructor should set correct min/max coordinate bounds")
     void testConstructorSetsCoordinateBounds() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 13, 960, 14, 1000, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 12, 960, 14, 1000, 2, 0);
 
         assertEquals(960, indexer.getMinX());
-        assertEquals(960 + 8191, indexer.getMaxX());
+        assertEquals(960 + 4095, indexer.getMaxX());
         assertEquals(1000, indexer.getMinY());
         assertEquals(1000 + 16383, indexer.getMaxY());
         assertEquals(0, indexer.getMinPlane());
@@ -58,7 +58,7 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("packToBitmapIndex with validation enabled should validate X coordinate")
     void testPackToBitmapIndexValidatesX() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 13, 960, 14, 0, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 12, 960, 14, 0, 2, 0);
 
         // Valid coordinate
         assertDoesNotThrow(() -> indexer.packToBitmapIndex(960, 0, 0, 0));
@@ -71,7 +71,7 @@ class ConfigurableCoordIndexerTest {
 
         // X above maximum
         IllegalArgumentException exception2 = assertThrows(IllegalArgumentException.class, () ->
-            indexer.packToBitmapIndex(960 + 8192, 0, 0, 0)
+            indexer.packToBitmapIndex(960 + 4096, 0, 0, 0)
         );
         assertTrue(exception2.getMessage().contains("X coordinate"));
     }
@@ -79,7 +79,7 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("packToBitmapIndex with validation enabled should validate Y coordinate")
     void testPackToBitmapIndexValidatesY() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 13, 0, 14, 100, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 12, 0, 14, 100, 2, 0);
 
         // Valid coordinate
         assertDoesNotThrow(() -> indexer.packToBitmapIndex(0, 100, 0, 0));
@@ -100,7 +100,7 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("packToBitmapIndex with validation enabled should validate plane coordinate")
     void testPackToBitmapIndexValidatesPlane() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 13, 0, 14, 0, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 12, 0, 14, 0, 2, 0);
 
         // Valid plane
         assertDoesNotThrow(() -> indexer.packToBitmapIndex(0, 0, 0, 0));
@@ -122,11 +122,11 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("packToBitmapIndex with validation enabled should validate data bit position")
     void testPackToBitmapIndexValidatesDataBitPosition() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 13, 0, 14, 0, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 12, 0, 14, 0, 2, 0);
 
-        // Valid data bit positions (0 to 3)
+        // Valid data bit positions (0 to 4)
         assertDoesNotThrow(() -> indexer.packToBitmapIndex(0, 0, 0, 0));
-        assertDoesNotThrow(() -> indexer.packToBitmapIndex(0, 0, 0, 3));
+        assertDoesNotThrow(() -> indexer.packToBitmapIndex(0, 0, 0, 4));
 
         // Data bit below minimum
         IllegalArgumentException exception1 = assertThrows(IllegalArgumentException.class, () ->
@@ -136,7 +136,7 @@ class ConfigurableCoordIndexerTest {
 
         // Data bit above maximum
         IllegalArgumentException exception2 = assertThrows(IllegalArgumentException.class, () ->
-            indexer.packToBitmapIndex(0, 0, 0, 4)
+            indexer.packToBitmapIndex(0, 0, 0, 5)
         );
         assertTrue(exception2.getMessage().contains("Data bit"));
     }
@@ -144,7 +144,7 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("packToBitmapIndex without validation should not throw")
     void testPackToBitmapIndexWithoutValidation() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 13, 0, 14, 0, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 12, 0, 14, 0, 2, 0);
 
         // Should not throw even with invalid values when validation disabled
         assertDoesNotThrow(() -> indexer.packToBitmapIndex(-1, -1, -1, -1));
@@ -191,7 +191,7 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("withValidationEnabled should return same instance if already enabled")
     void testWithValidationEnabledReturnsSameInstanceIfAlreadyEnabled() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 13, 0, 14, 0, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 12, 0, 14, 0, 2, 0);
         ConfigurableCoordIndexer result = indexer.withValidationEnabled();
 
         assertSame(indexer, result);
@@ -200,7 +200,7 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("withValidationEnabled should create new instance if disabled")
     void testWithValidationEnabledCreatesNewInstanceIfDisabled() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 13, 0, 14, 0, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 12, 0, 14, 0, 2, 0);
         ConfigurableCoordIndexer result = indexer.withValidationEnabled();
 
         assertNotSame(indexer, result);
@@ -211,7 +211,7 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("withValidationDisabled should return same instance if already disabled")
     void testWithValidationDisabledReturnsSameInstanceIfAlreadyDisabled() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 13, 0, 14, 0, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 12, 0, 14, 0, 2, 0);
         ConfigurableCoordIndexer result = indexer.withValidationDisabled();
 
         assertSame(indexer, result);
@@ -220,7 +220,7 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("withValidationDisabled should create new instance if enabled")
     void testWithValidationDisabledCreatesNewInstanceIfEnabled() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 13, 0, 14, 0, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, true, 12, 0, 14, 0, 2, 0);
         ConfigurableCoordIndexer result = indexer.withValidationDisabled();
 
         assertNotSame(indexer, result);
@@ -231,7 +231,7 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("withMaxBits should return same instance if capacity unchanged")
     void testWithMaxBitsReturnsSameInstanceIfUnchanged() {
-        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 13, 0, 14, 0, 2, 0);
+        ConfigurableCoordIndexer indexer = new ConfigurableCoordIndexer(32, false, 12, 0, 14, 0, 2, 0);
         ConfigurableCoordIndexer result = indexer.withMaxBits(32);
 
         assertSame(indexer, result);
@@ -240,14 +240,14 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("withMaxBits should create new instance with different capacity")
     void testWithMaxBitsCreatesNewInstanceWithDifferentCapacity() {
-        ConfigurableCoordIndexer indexer32 = new ConfigurableCoordIndexer(32, false, 13, 0, 14, 0, 2, 0);
+        ConfigurableCoordIndexer indexer32 = new ConfigurableCoordIndexer(32, false, 12, 0, 14, 0, 2, 0);
         ConfigurableCoordIndexer indexer31 = indexer32.withMaxBits(31);
 
         assertNotSame(indexer32, indexer31);
         assertEquals(32, indexer32.getMaxBitCapacity());
         assertEquals(31, indexer31.getMaxBitCapacity());
-        assertEquals(3, indexer32.getMaxDataBitIndex());
-        assertEquals(2, indexer31.getMaxDataBitIndex());
+        assertEquals(4, indexer32.getMaxDataBitIndex());
+        assertEquals(3, indexer31.getMaxDataBitIndex());
     }
 
     @Test
@@ -255,7 +255,7 @@ class ConfigurableCoordIndexerTest {
     void testBuilderCreatesCorrectIndexer() {
         ConfigurableCoordIndexer indexer = ConfigurableCoordIndexer.builder()
                 .maxBits(32)
-                .xBits(13)
+                .xBits(12)
                 .xBase(960)
                 .yBits(14)
                 .yBase(1000)
@@ -265,7 +265,7 @@ class ConfigurableCoordIndexerTest {
         assertEquals(32, indexer.getMaxBitCapacity());
         assertEquals(960, indexer.getMinX());
         assertEquals(1000, indexer.getMinY());
-        assertEquals(3, indexer.getMaxDataBitIndex());
+        assertEquals(4, indexer.getMaxDataBitIndex());
     }
 
     @Test
@@ -273,7 +273,7 @@ class ConfigurableCoordIndexerTest {
     void testBuilderEnablesValidation() {
         ConfigurableCoordIndexer indexer = ConfigurableCoordIndexer.builder()
                 .maxBits(32)
-                .xBits(13)
+                .xBits(12)
                 .yBits(14)
                 .planeBits(2)
                 .useAdditionalValidation()
@@ -283,27 +283,18 @@ class ConfigurableCoordIndexerTest {
     }
 
     @Test
-    @DisplayName("ROARINGBITMAP_4BIT_DATA_COORD_INDEXER should have 4 data bits")
+    @DisplayName("ROARINGBITMAP_5BIT_DATA_COORD_INDEXER should have 5 data bits")
     void testOptimizedPackingRoaringBitmap() {
-        ConfigurableCoordIndexer indexer = ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER;
+        ConfigurableCoordIndexer indexer = ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER;
 
         assertEquals(32, indexer.getMaxBitCapacity());
-        assertEquals(3, indexer.getMaxDataBitIndex());
+        assertEquals(4, indexer.getMaxDataBitIndex());
     }
 
     @Test
-    @DisplayName("SPARSEBITSET_3BIT_DATA_COORD_INDEXER should have 3 data bits")
+    @DisplayName("SPARSEBITSET_4BIT_DATA_COORD_INDEXER should have 4 data bits")
     void testOptimizedPackingSparsebitset() {
-        ConfigurableCoordIndexer indexer = ConfigurableCoordIndexer.SPARSEBITSET_3BIT_DATA_COORD_INDEXER;
-
-        assertEquals(31, indexer.getMaxBitCapacity());
-        assertEquals(2, indexer.getMaxDataBitIndex());
-    }
-
-    @Test
-    @DisplayName("SPARSEBITSET_4BIT_DATA_COORD_INDEXER_PLANES01 should have 4 data bits")
-    void testOptimizedPackingSparsebitsetPlanes01() {
-        ConfigurableCoordIndexer indexer = ConfigurableCoordIndexer.SPARSEBITSET_4BIT_DATA_COORD_INDEXER_PLANES01;
+        ConfigurableCoordIndexer indexer = ConfigurableCoordIndexer.SPARSEBITSET_4BIT_DATA_COORD_INDEXER;
 
         assertEquals(31, indexer.getMaxBitCapacity());
         assertEquals(3, indexer.getMaxDataBitIndex());
@@ -312,7 +303,7 @@ class ConfigurableCoordIndexerTest {
     @Test
     @DisplayName("Chained copy methods should work correctly")
     void testChainedCopyMethods() {
-        ConfigurableCoordIndexer original = new ConfigurableCoordIndexer(32, false, 13, 0, 14, 0, 2, 0);
+        ConfigurableCoordIndexer original = new ConfigurableCoordIndexer(32, false, 12, 0, 14, 0, 2, 0);
 
         ConfigurableCoordIndexer modified = original
                 .withValidationEnabled()
@@ -320,7 +311,7 @@ class ConfigurableCoordIndexerTest {
 
         assertTrue(modified.isAdditionalValidationEnabled());
         assertEquals(31, modified.getMaxBitCapacity());
-        assertEquals(2, modified.getMaxDataBitIndex());
+        assertEquals(3, modified.getMaxDataBitIndex());
 
         assertFalse(original.isAdditionalValidationEnabled());
         assertEquals(32, original.getMaxBitCapacity());
@@ -339,4 +330,5 @@ class ConfigurableCoordIndexerTest {
         int result2 = indexer.packToBitmapIndex(101, 201, 0, 0);
         assertEquals((1 << 8) | 1, result2); // Y offset 1 at shift 8, X offset 1 at shift 0
     }
+
 }

@@ -19,7 +19,7 @@ public class RoaringCollisionMap implements ICollisionMap {
     static final int NORTH_DATA_BIT_POS = 0;
     static final int EAST_DATA_BIT_POS = 1;
     static final ConfigurableCoordIndexer INDEXER
-            = ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER;
+            = ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER;
 
     private final RoaringBitmap bitmap;
 
