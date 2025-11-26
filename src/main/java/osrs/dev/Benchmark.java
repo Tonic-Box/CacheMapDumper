@@ -133,10 +133,13 @@ public class Benchmark
 
         System.out.println("\nTest mode: " + testMode);
 
-        if (testMode.equals("realistic")) {
+        if (testMode.equalsIgnoreCase("realistic")) {
+            benchmarkRealistic(map);
+        } else if (testMode.equalsIgnoreCase("random")){
             benchmarkRandom(map);
         } else {
-            benchmarkRealistic(map);
+            System.err.println("Error: Unknown test mode '" + testMode + "'");
+            System.exit(1);
         }
     }
 
