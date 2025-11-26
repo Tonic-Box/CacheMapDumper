@@ -108,12 +108,12 @@ public class Benchmark
             System.exit(1);
         }
 
+        System.out.println("Test map format: " + format);
+        System.out.println("Test mode: " + testMode);
+
         // Measure baseline memory
         long baselineMemory = measureMemoryUsage();
-
-        System.out.println("Loading map: " + mapFile.getAbsolutePath());
         CollisionMap map = CollisionMapFactory.load(mapFile.getAbsolutePath());
-        System.out.println("Map loaded successfully");
 
         // Measure memory after loading
         long loadedMemory = measureMemoryUsage();
@@ -131,7 +131,6 @@ public class Benchmark
             System.out.println("Memory/Disk ratio: " + String.format("%.2fx", mapMemoryUsage / (double) fileSize));
         }
 
-        System.out.println("\nTest mode: " + testMode);
 
         if (testMode.equalsIgnoreCase("realistic")) {
             benchmarkRealistic(map);
@@ -150,9 +149,9 @@ public class Benchmark
         java.util.Random random = new java.util.Random(42);
 
         // Warmup phase
-        System.out.println("\nWarming up JIT (100k reads)...");
+        System.out.println("\nWarming up JIT (200k reads)...");
         long totalWalkable = 0;
-        for (int i = 0; i < 100_000; i++) {
+        for (int i = 0; i < 200_000; i++) {
             int x = randomX(random);
             int y = randomY(random);
             int plane = randomPlane(random);
@@ -165,6 +164,12 @@ public class Benchmark
             }
         }
         System.out.println("Warmup complete");
+
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
         // Benchmark phase
         System.out.println("\nRunning benchmark (100,000,000 random reads)...");
@@ -194,22 +199,30 @@ public class Benchmark
      * Benchmark with realistic coordinate reads
      */
     private static void benchmarkRealistic(CollisionMap map) {
+        java.util.Random random = new java.util.Random(42);
+
         // Warmup phase
         System.out.println("\nWarming up JIT...");
-        long warmupReads = 0;
         long totalWalkable = 0;
-        for (int x = MIN_X; x <= Math.min(MIN_X + 10, MAX_X); x++) {
-            for (int y = MIN_Y; y <= Math.min(MIN_Y + 10, MAX_Y); y++) {
-                for (int plane = MIN_PLANE; plane <= MAX_PLANE; plane++) {
-                    totalWalkable += map.pathableNorth(x, y, plane) ? 1 : 0;
-                    totalWalkable += map.pathableEast(x, y, plane) ? 1 : 0;
-                    totalWalkable += map.pathableSouth(x, y, plane) ? 1 : 0;
-                    totalWalkable += map.pathableWest(x, y, plane) ? 1 : 0;
-                    warmupReads += 4;
-                }
+        for (int i = 0; i < 200_000; i++) {
+            int x = randomX(random);
+            int y = randomY(random);
+            int plane = randomPlane(random);
+
+            switch (i % 4) {
+                case 0: totalWalkable += map.pathableNorth(x, y, plane) ? 1 : 0; break;
+                case 1: totalWalkable += map.pathableEast(x, y, plane) ? 1 : 0; break;
+                case 2: totalWalkable += map.pathableSouth(x, y, plane) ? 1 : 0; break;
+                case 3: totalWalkable += map.pathableWest(x, y, plane) ? 1 : 0; break;
             }
         }
-        System.out.println("Warmup complete (" + warmupReads + " reads)");
+        System.out.println("Warmup complete");
+
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
         // Benchmark phase
         System.out.println("\nRunning benchmark (sequential reads)...");
