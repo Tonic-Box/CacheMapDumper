@@ -253,10 +253,10 @@ public class UIFrame extends JFrame {
         // Create a panel for input fields
         JPanel inputPanel = new JPanel(new GridLayout(5, 1));
 
-        // Add a label and text field for collision map path
-        JLabel pathLabel = new JLabel("Collision Map Path:");
+        // Add a label and text field for output directory
+        JLabel pathLabel = new JLabel("Output Directory:");
         pathField = new JTextField();
-        pathField.setText(Main.getConfigManager().outputPath());
+        pathField.setText(Main.getConfigManager().outputDir());
         inputPanel.add(pathLabel);
         inputPanel.add(pathField);
 
@@ -303,15 +303,16 @@ public class UIFrame extends JFrame {
                 repaint();
             });
 
-            Main.getConfigManager().setOutputPath(pathField.getText());
+            Main.getConfigManager().setOutputDir(pathField.getText());
+            String selectedFormat = (String) formatComboBox.getSelectedItem();
 
             List<String> options = new ArrayList<>();
-            options.add("-path");
+            options.add("-dir");
             options.add(pathField.getText());
             options.add("-fresh");
             options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
             options.add("-format");
-            options.add((String) formatComboBox.getSelectedItem());
+            options.add(selectedFormat);
 
             ThreadPool.submit(() -> {
                 try

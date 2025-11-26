@@ -1,4 +1,4 @@
-package osrs.dev.reader;
+package osrs.dev.tiletypemap;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -6,16 +6,22 @@ import com.google.common.collect.ImmutableMap;
  * Flags for the different types of water tiles.
  */
 public class TileType {
-    public static final short WATER = 1;
-    public static final short CRANDOR_SMEGMA_WATER = 2;
-    public static final short TEMPOR_STORM_WATER = 3;
-    public static final short DISEASE_WATER = 4;
-    public static final short KELP_WATER = 5;
-    public static final short SUNBAKED_WATER = 6;
-    public static final short JAGGED_REEFS_WATER = 7;
-    public static final short SHARP_CRYSTAL_WATER = 8;
+    public static final byte WATER = 1;
+    public static final byte CRANDOR_SMEGMA_WATER = 2;
+    public static final byte TEMPOR_STORM_WATER = 3;
+    public static final byte DISEASE_WATER = 4;
+    public static final byte KELP_WATER = 5;
+    public static final byte SUNBAKED_WATER = 6;
+    public static final byte JAGGED_REEFS_WATER = 7;
+    public static final byte SHARP_CRYSTAL_WATER = 8;
 
-    public static ImmutableMap<Integer, Byte> SPRITE_ID_TO_TILE_TYPE_FLAGS = ImmutableMap.<Integer, Byte>builder()
+    // Bit position constants for encoding type value in upper coordinate bits
+    public static final int TILE_TYPE_BIT_0 = 1 << 28;  // value 1
+    public static final int TILE_TYPE_BIT_1 = 1 << 29;  // value 2
+    public static final int TILE_TYPE_BIT_2 = 1 << 30;  // value 4
+    public static final int TILE_TYPE_BIT_3 = 1 << 31;  // value 8
+
+    public static ImmutableMap<Integer, Byte> SPRITE_ID_TO_TILE_TYPE = ImmutableMap.<Integer, Byte>builder()
             .put(1, WATER)
             .put(130, WATER)
             .put(131, WATER)

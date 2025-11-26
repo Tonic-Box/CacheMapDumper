@@ -1,6 +1,4 @@
-package osrs.dev.collision;
-
-import osrs.dev.reader.Flags;
+package osrs.dev.collisionmap;
 
 /**
  * Interface for reading collision map data.

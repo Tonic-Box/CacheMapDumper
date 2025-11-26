@@ -3,8 +3,8 @@ package osrs.dev;
 import com.formdev.flatlaf.FlatDarkLaf;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import osrs.dev.collision.CollisionMapFactory;
-import osrs.dev.collision.ICollisionMap;
+import osrs.dev.collisionmap.CollisionMapFactory;
+import osrs.dev.collisionmap.ICollisionMap;
 import osrs.dev.dumper.Dumper;
 import osrs.dev.ui.UIFrame;
 import osrs.dev.util.ConfigManager;
@@ -55,7 +55,9 @@ public class Main
      */
     public static void load() throws Exception {
         configManager = new ConfigManager();
-        Dumper.OUTPUT_MAP = new File(configManager.outputPath());
+        String format = configManager.format();
+        String collisionMapPath = configManager.getCollisionMapPath(format);
+        Dumper.OUTPUT_MAP = new File(collisionMapPath);
         log.info("Looking for collision map at: {}", Dumper.OUTPUT_MAP.getPath());
         if(Dumper.OUTPUT_MAP.exists())
         {

@@ -25,7 +25,7 @@ public class ConfigManager
     {
         loadConfigFromFile();
         var map = new HashMap<String, Object>();
-        map.put("output", System.getProperty("user.home") + "/VitaX/map.dat");
+        map.put("output_dir", System.getProperty("user.home") + "/VitaX/");
         map.put("fresh_cache", true);
         map.put("format", "RoaringBitmap");
         map.put("bg_color", "#F8F8F8");
@@ -35,8 +35,42 @@ public class ConfigManager
         ensure(map);
     }
 
-    public String outputPath() {
-        return getString("output");
+    public String outputDir() {
+        return getString("output_dir");
+    }
+
+    /**
+     * Constructs the collision map file path based on output directory and format.
+     * @param format "RoaringBitmap" or "SparseBitSet"
+     * @return the full file path
+     */
+    public String getCollisionMapPath(String format) {
+        String dir = outputDir();
+        if (!dir.endsWith("/") && !dir.endsWith("\\")) {
+            dir += "/";
+        }
+        if ("SparseBitSet".equalsIgnoreCase(format)) {
+            return dir + "map_sparse.dat.gz";
+        } else {
+            return dir + "map_roaring.dat.gz";
+        }
+    }
+
+    /**
+     * Constructs the tile type map file path based on output directory and format.
+     * @param format "RoaringBitmap" or "SparseBitSet"
+     * @return the full file path
+     */
+    public String getTileTypeMapPath(String format) {
+        String dir = outputDir();
+        if (!dir.endsWith("/") && !dir.endsWith("\\")) {
+            dir += "/";
+        }
+        if ("SparseBitSet".equalsIgnoreCase(format)) {
+            return dir + "tile_types_sparse.dat.gz";
+        } else {
+            return dir + "tile_types_roaring.dat.gz";
+        }
     }
 
     public boolean freshCache() {
@@ -79,8 +113,8 @@ public class ConfigManager
         return getString("wall_color");
     }
 
-    public void setOutputPath(String path) {
-        setProperty("output", path);
+    public void setOutputDir(String dir) {
+        setProperty("output_dir", dir);
     }
 
     public void setFreshCache(boolean fresh) {

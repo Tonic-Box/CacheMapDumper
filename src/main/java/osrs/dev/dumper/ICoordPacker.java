@@ -1,4 +1,4 @@
-package osrs.dev.collision;
+package osrs.dev.dumper;
 
 /**
  * Interface for coordinate packing strategies.

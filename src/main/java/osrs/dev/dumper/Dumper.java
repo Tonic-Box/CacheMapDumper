@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.cache.ObjectManager;
 import net.runelite.cache.OverlayManager;
 import net.runelite.cache.UnderlayManager;
-import net.runelite.cache.definitions.MapDefinition;
 import net.runelite.cache.definitions.ObjectDefinition;
 import net.runelite.cache.definitions.OverlayDefinition;
 import net.runelite.cache.definitions.UnderlayDefinition;
@@ -19,10 +18,11 @@ import net.runelite.cache.region.Region;
 import net.runelite.cache.region.RegionLoader;
 import net.runelite.cache.util.KeyProvider;
 import net.runelite.cache.util.XteaKeyManager;
-import osrs.dev.collision.CollisionMapFactory;
-import osrs.dev.collision.ConfigurableCoordPacker;
-import osrs.dev.collision.ICollisionMapWriter;
+import osrs.dev.collisionmap.CollisionMapFactory;
+import osrs.dev.collisionmap.ICollisionMapWriter;
+import osrs.dev.tiletypemap.roaring.RoaringTileTypeMapWriter;
 import osrs.dev.dumper.openrs2.OpenRS2;
+import osrs.dev.tiletypemap.TileType;
 import osrs.dev.util.OptionsParser;
 import osrs.dev.util.ProgressBar;
 
@@ -45,8 +45,9 @@ import java.util.concurrent.Future;
 @Slf4j
 public class Dumper
 {
-    public static File OUTPUT_MAP = new File(System.getProperty("user.home") + "/VitaX/collision/map.dat");
-    public static final String COLLISION_DIR = System.getProperty("user.home") + "/VitaX/collision/";
+    public static File OUTPUT_MAP = new File(System.getProperty("user.home") + "/VitaX/map_roaring.dat.gz");
+    public static File OUTPUT_TILE_TYPES = new File(System.getProperty("user.home") + "/VitaX/tile_types_roaring.dat.gz");
+    public static final String COLLISION_DIR = System.getProperty("user.home") + "/VitaX/cachedumper/";
     public static final String CACHE_DIR = COLLISION_DIR + "/cache/";
     public static final String XTEA_DIR = COLLISION_DIR + "/keys/";
     private final RegionLoader regionLoader;
@@ -54,9 +55,10 @@ public class Dumper
     private final OverlayManager overlayManager;
     private final UnderlayManager underlayManager;
     private final ICollisionMapWriter collisionMapWriter;
+    private final RoaringTileTypeMapWriter tileTypeMapWriter;
 
     private static OptionsParser optionsParser;
-    private static CollisionMapFactory.Format format = CollisionMapFactory.Format.ROARING_GZIP;
+    private static CollisionMapFactory.Format format = CollisionMapFactory.Format.ROARING;
 
     /**
      * Creates a new dumper.
@@ -71,6 +73,7 @@ public class Dumper
         this.overlayManager = new OverlayManager(store);
         this.underlayManager = new UnderlayManager(store);
         this.collisionMapWriter = CollisionMapFactory.createWriter(format);
+        this.tileTypeMapWriter = new RoaringTileTypeMapWriter();
         objectManager.load();
         overlayManager.load();
         underlayManager.load();
@@ -120,10 +123,14 @@ public class Dumper
     public static void main(String[] args) throws IOException
     {
         optionsParser = new OptionsParser(args);
-        OUTPUT_MAP = new File(optionsParser.getPath());
         format = optionsParser.getFormat();
+        OUTPUT_MAP = new File(optionsParser.getCollisionMapPath());
+        OUTPUT_TILE_TYPES = new File(optionsParser.getTileTypeMapPath());
 
-        log.info("Dumper options - path: {}, format: {}", OUTPUT_MAP.getPath(), format);
+        log.info("Dumper options - dir: {}, format: {}", optionsParser.getOutputDir(), format);
+        log.info("Collision map path: {}", OUTPUT_MAP.getPath());
+        log.info("Tile type map path: {}", OUTPUT_TILE_TYPES.getPath());
+        ensureDirectory(optionsParser.getOutputDir());
         ensureDirectory(COLLISION_DIR);
         ensureDirectory(XTEA_DIR);
         boolean fresh = optionsParser.isFreshCache();
@@ -188,6 +195,8 @@ public class Dumper
             }
             dumper.collisionMapWriter.save(OUTPUT_MAP.getPath());
             log.info("Wrote collision map to {}", OUTPUT_MAP.getPath());
+            dumper.tileTypeMapWriter.save(OUTPUT_TILE_TYPES.getPath());
+            log.info("Wrote tile type map to {}", OUTPUT_TILE_TYPES.getPath());
         }
         catch (ExecutionException | InterruptedException e)
         {
@@ -211,6 +220,7 @@ public class Dumper
                     int regionY = baseY + localY;
                     // processDebugging(region, localX, localY, z, regionX, regionY);
                     processCollisionOfRegionCoordinate(region, localX, localY, z, regionX, regionY);
+                    processTileTypesOfRegionCoordinate(region, localX, localY, z, regionX, regionY);
                 }
             }
         }
@@ -386,12 +396,25 @@ public class Dumper
 
 
     private void processTileTypesOfRegionCoordinate(Region region, int localX, int localY, int plane, int regionX, int regionY) {
-        byte tileTypeFlags = 0;
+        boolean isBridge = (region.getTileSetting(1, localX, localY) & 2) != 0;
+        int tileZ = plane + (isBridge ? 1 : 0);
+        int effectivePlane = plane < 3 ? tileZ : plane;
 
-        // TODO: Get overlay
-        // TODO: Get overlay sprite id
-        // TODO: If overlay sprite id is found in TileTypeFlags.SPRITE_ID_TO_TILE_TYPE_FLAGS map, set those flags
-        // TODO: Store flags in some data structure (Another bitmap?)
+        int overlayId = region.getOverlayId(effectivePlane, localX, localY);
+        if (overlayId <= 0) {
+            return;
+        }
+
+        OverlayDefinition overlayDef = findOverlay(overlayId - 1);
+        if (overlayDef == null) {
+            return;
+        }
+
+        int textureId = overlayDef.getTexture();
+        Byte tileType = TileType.SPRITE_ID_TO_TILE_TYPE.get(textureId);
+        if (tileType != null && tileType > 0) {
+            tileTypeMapWriter.setTileType(regionX, regionY, plane, tileType);
+        }
     }
 
     private void processCollisionOfRegionCoordinate(Region region, int localX, int localY, int plane, int regionX, int regionY) {

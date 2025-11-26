@@ -1,8 +1,8 @@
 package osrs.dev;
 
 import lombok.extern.slf4j.Slf4j;
-import osrs.dev.collision.CollisionMapFactory;
-import osrs.dev.collision.ICollisionMap;
+import osrs.dev.collisionmap.CollisionMapFactory;
+import osrs.dev.collisionmap.ICollisionMap;
 
 import java.io.File;
 
@@ -12,7 +12,7 @@ import java.io.File;
 @Slf4j
 public class Benchmark
 {
-    public static File SPARSE_MAP = new File(System.getProperty("user.home") + "/VitaX/map_sparse.dat");
+    public static File SPARSE_MAP = new File(System.getProperty("user.home") + "/VitaX/map_sparse.dat.gz");
     public static File ROARING_MAP = new File(System.getProperty("user.home") + "/VitaX/map_roaring.dat.gz");
 
     private static final int MIN_X = 1500;

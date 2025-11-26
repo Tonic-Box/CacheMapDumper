@@ -1,11 +1,13 @@
-package osrs.dev.reader;
+package osrs.dev.collisionmap.sparse;
 
 import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
-import osrs.dev.collision.ICollisionMap;
-import osrs.dev.collision.ICoordPacker;
-import osrs.dev.collision.ConfigurableCoordPacker;
+import osrs.dev.collisionmap.ICollisionMap;
+import osrs.dev.dumper.ICoordPacker;
+import osrs.dev.dumper.ConfigurableCoordPacker;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 
 /**
  * SparseBitSet-based collision map with configurable coordinate packing.
@@ -113,37 +115,17 @@ public class SparseBitSetCollisionMap implements ICollisionMap {
     // ==================== Static factory ====================
 
     /**
-     * Loads a collision map from a file with default legacy packing.
+     * Loads a collision map from an input stream.
+     * The input stream should already be decompressed if it was gzipped.
      *
-     * @param filePath The file path.
+     * @param inputStream The input stream containing serialized SparseBitSet.
      * @return The collision map.
      * @throws IOException            On file read error.
      * @throws ClassNotFoundException On class not found.
      */
-    public static SparseBitSetCollisionMap load(String filePath) throws IOException, ClassNotFoundException {
-        return load(filePath, ConfigurableCoordPacker.JAGEX_PACKING);
-    }
-
-    /**
-     * Loads a collision map from a file with specified packing.
-     *
-     * @param filePath The file path.
-     * @param packing The coordinate packing to use.
-     * @return The collision map.
-     * @throws IOException            On file read error.
-     * @throws ClassNotFoundException On class not found.
-     */
-    public static SparseBitSetCollisionMap load(String filePath, ICoordPacker packing) throws IOException, ClassNotFoundException {
-        File file = new File(filePath);
-
-        if (!file.exists() || !file.isFile()) {
-            System.err.println("File not found: " + filePath);
-            return null;
-        }
-
-        try (InputStream is = new FileInputStream(file);
-             ObjectInputStream objectInputStream = new ObjectInputStream(is)) {
-            return new SparseBitSetCollisionMap((SparseBitSet) objectInputStream.readObject(), packing);
+    public static SparseBitSetCollisionMap load(InputStream inputStream) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
+            return new SparseBitSetCollisionMap((SparseBitSet) objectInputStream.readObject(), ConfigurableCoordPacker.JAGEX_PACKING);
         }
     }
 }

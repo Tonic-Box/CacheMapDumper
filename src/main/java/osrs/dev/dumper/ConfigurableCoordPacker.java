@@ -1,22 +1,22 @@
-package osrs.dev.collision;
+package osrs.dev.dumper;
 
 /**
  * Configurable coordinate packing with customizable bit layouts.
  * Allows different X/Y/plane bit widths for encoding coordinates into a single int.
  */
 public class ConfigurableCoordPacker implements ICoordPacker {
-
     /**
-     * Jagex format: 14 bits X, 14 bits Y, 4 bits plane
+     * Jagex format: 14 bits X, 14 bits Y, 2 bits plane
+     * leaving 3 bits left over for data - enough for collision
      */
     public static final ConfigurableCoordPacker JAGEX_PACKING = new ConfigurableCoordPacker(
             16383, 0,   // xMask, xShift
             16383, 14,  // yMask, yShift
-            0b1111, 28     // planeMask, planeShift
+            0b11, 28     // planeMask, planeShift
     );
     /**
      * Compact format: 13 bits X, 13 bits Y, 2 bits plane,
-     * leaving 1 bit for E_FLAG, 4 bits for tile type, 1 bit left over for whatever
+     * leaving 5 bits left over for data - enough for tile types (and technically collision at the same time)
      */
     public static final ConfigurableCoordPacker COMPACT_13BIT_PACKING = new ConfigurableCoordPacker(
             8191, 0,   // xMask, xShift

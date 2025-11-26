@@ -1,6 +1,9 @@
-package osrs.dev.collision;
+package osrs.dev.collisionmap.roaring;
 
 import org.roaringbitmap.RoaringBitmap;
+import osrs.dev.dumper.ConfigurableCoordPacker;
+import osrs.dev.dumper.ICoordPacker;
+import osrs.dev.collisionmap.ICollisionMapWriter;
 
 import java.io.*;
 import java.util.zip.GZIPOutputStream;
@@ -11,17 +14,11 @@ import java.util.zip.GZIPOutputStream;
  * Bit SET = BLOCKED (cannot walk in that direction)
  */
 public class RoaringCollisionMapWriter implements ICollisionMapWriter {
-
     private final RoaringBitmap bitmap;
-    private final ICoordPacker packing;
+    private static final ICoordPacker packing = ConfigurableCoordPacker.JAGEX_PACKING;
 
     public RoaringCollisionMapWriter() {
-        this(ConfigurableCoordPacker.JAGEX_PACKING);
-    }
-
-    public RoaringCollisionMapWriter(ICoordPacker packing) {
         this.bitmap = new RoaringBitmap();
-        this.packing = packing;
     }
 
     @Override
@@ -46,11 +43,36 @@ public class RoaringCollisionMapWriter implements ICollisionMapWriter {
 
     @Override
     public void save(String filePath) throws IOException {
+        if (filePath.endsWith(".gz")) {
+            saveGzipped(filePath);
+        } else {
+            saveWithoutGzip(filePath);
+        }
+    }
+
+
+    public void saveGzipped(String filePath) throws IOException {
         bitmap.runOptimize();
 
         try (FileOutputStream fos = new FileOutputStream(filePath);
              GZIPOutputStream gzos = new GZIPOutputStream(fos);
              DataOutputStream dos = new DataOutputStream(gzos)) {
+
+            bitmap.serialize(dos);
+        }
+    }
+
+    /**
+     * Saves the collision map without GZIP compression.
+     *
+     * @param filePath path to save the collision map
+     * @throws IOException if saving fails
+     */
+    public void saveWithoutGzip(String filePath) throws IOException {
+        bitmap.runOptimize();
+
+        try (FileOutputStream fos = new FileOutputStream(filePath);
+             DataOutputStream dos = new DataOutputStream(fos)) {
 
             bitmap.serialize(dos);
         }

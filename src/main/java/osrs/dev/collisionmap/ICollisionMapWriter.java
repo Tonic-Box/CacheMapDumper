@@ -1,4 +1,4 @@
-package osrs.dev.collision;
+package osrs.dev.collisionmap;
 
 import java.io.IOException;
 
