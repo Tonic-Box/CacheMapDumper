@@ -1,10 +1,8 @@
-package osrs.dev.tiletypemap.roaring;
+package osrs.dev.tiledatamap.roaring;
 
 import org.roaringbitmap.RoaringBitmap;
 import osrs.dev.dumper.ConfigurableCoordIndexer;
-import osrs.dev.dumper.ICoordIndexer;
-import osrs.dev.tiletypemap.ITileTypeMapWriter;
-import osrs.dev.tiletypemap.sparse.SparseBitSetTileTypeMap;
+import osrs.dev.tiledatamap.ITileDataMapWriter;
 
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
@@ -12,15 +10,15 @@ import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Writer for tile type data using RoaringBitmap with type value encoded in upper bits.
- * Uses 4 bits (28-31) to encode type values 0-15.
+ * Generic RoaringBitmap-based data map writer.
+ * Writes arbitrary data bits at tile coordinates using RoaringBitmap.
  */
-public class RoaringTileTypeMapWriter implements ITileTypeMapWriter {
+public class RoaringTileDataMapWriter implements ITileDataMapWriter {
     static final ConfigurableCoordIndexer INDEXER
-            = RoaringTileTypeMap.INDEXER.withValidationEnabled();
+            = RoaringTileDataMap.INDEXER.withValidationEnabled();
     private final RoaringBitmap bitmap;
 
-    public RoaringTileTypeMapWriter() {
+    public RoaringTileDataMapWriter() {
         this.bitmap = new RoaringBitmap();
     }
 
@@ -28,7 +26,6 @@ public class RoaringTileTypeMapWriter implements ITileTypeMapWriter {
     public synchronized void setDataBit(int x, int y, int plane, int dataBitIndex) {
         bitmap.add(INDEXER.packToBitmapIndex(x, y, plane, dataBitIndex));
     }
-
 
     @Override
     public void save(String filePath) throws IOException {
@@ -40,9 +37,9 @@ public class RoaringTileTypeMapWriter implements ITileTypeMapWriter {
     }
 
     /**
-     * Saves the tile type map with GZIP compression.
+     * Saves the data map with GZIP compression.
      *
-     * @param filePath path to save the tile type map
+     * @param filePath path to save the data map
      * @throws IOException if saving fails
      */
     public void saveGzipped(String filePath) throws IOException {
@@ -57,9 +54,9 @@ public class RoaringTileTypeMapWriter implements ITileTypeMapWriter {
     }
 
     /**
-     * Saves the tile type map without GZIP compression.
+     * Saves the data map without GZIP compression.
      *
-     * @param filePath path to save the tile type map
+     * @param filePath path to save the data map
      * @throws IOException if saving fails
      */
     public void saveWithoutGzip(String filePath) throws IOException {

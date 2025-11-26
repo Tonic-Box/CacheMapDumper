@@ -1,10 +1,12 @@
 package osrs.dev.collisionmap;
 
 import lombok.extern.slf4j.Slf4j;
-import osrs.dev.collisionmap.roaring.RoaringCollisionMap;
-import osrs.dev.collisionmap.roaring.RoaringCollisionMapWriter;
-import osrs.dev.collisionmap.sparse.SparseBitSetCollisionMap;
-import osrs.dev.collisionmap.sparse.SparseBitsetMapWriter;
+import osrs.dev.tiledatamap.ITileDataMap;
+import osrs.dev.tiledatamap.ITileDataMapWriter;
+import osrs.dev.tiledatamap.roaring.RoaringTileDataMap;
+import osrs.dev.tiledatamap.roaring.RoaringTileDataMapWriter;
+import osrs.dev.tiledatamap.sparse.SparseTileDataMap;
+import osrs.dev.tiledatamap.sparse.SparseTileDataMapWriter;
 
 import java.io.*;
 import java.util.zip.GZIPInputStream;
@@ -43,7 +45,7 @@ public class CollisionMapFactory {
      * @return the loaded collision map
      * @throws Exception if loading fails
      */
-    public static ICollisionMap load(String filePath) throws Exception {
+    public static CollisionMap load(String filePath) throws Exception {
         File file = new File(filePath);
         if (!file.exists() || !file.isFile()) {
             System.err.println("File not found: " + filePath);
@@ -57,13 +59,17 @@ public class CollisionMapFactory {
         try (FileInputStream fis = new FileInputStream(file);
              InputStream inputStream = gzipped ? new GZIPInputStream(fis) : fis) {
 
+            ITileDataMap dataMap;
             switch (format) {
                 case ROARING:
-                    return RoaringCollisionMap.load(inputStream);
+                    dataMap = RoaringTileDataMap.load(inputStream);
+                    break;
                 case SPARSE_BITSET:
                 default:
-                    return SparseBitSetCollisionMap.load(inputStream);
+                    dataMap = SparseTileDataMap.load(inputStream);
+                    break;
             }
+            return new CollisionMap(dataMap);
         }
     }
 
@@ -103,22 +109,17 @@ public class CollisionMapFactory {
      * @param format the format to write
      * @return a new collision map writer
      */
-    public static ICollisionMapWriter createWriter(Format format) {
+    public static CollisionMapWriter createWriter(Format format) {
+        ITileDataMapWriter dataMapWriter;
         switch (format) {
             case ROARING:
-                return new RoaringCollisionMapWriter();
+                dataMapWriter = new RoaringTileDataMapWriter();
+                break;
             case SPARSE_BITSET:
             default:
-                return new SparseBitsetMapWriter();
+                dataMapWriter = new SparseTileDataMapWriter();
+                break;
         }
-    }
-
-    /**
-     * Creates a new writer for the default format (RoaringBitmap GZIP).
-     *
-     * @return a new collision map writer
-     */
-    public static ICollisionMapWriter createWriter() {
-        return createWriter(Format.ROARING);
+        return new CollisionMapWriter(dataMapWriter);
     }
 }

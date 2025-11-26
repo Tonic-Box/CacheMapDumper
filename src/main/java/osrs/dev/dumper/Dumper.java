@@ -19,11 +19,11 @@ import net.runelite.cache.region.RegionLoader;
 import net.runelite.cache.util.KeyProvider;
 import net.runelite.cache.util.XteaKeyManager;
 import osrs.dev.collisionmap.CollisionMapFactory;
-import osrs.dev.collisionmap.ICollisionMapWriter;
-import osrs.dev.tiletypemap.ITileTypeMapWriter;
+import osrs.dev.collisionmap.CollisionMapWriter;
 import osrs.dev.tiletypemap.TileTypeMapFactory;
 import osrs.dev.dumper.openrs2.OpenRS2;
 import osrs.dev.tiletypemap.TileType;
+import osrs.dev.tiletypemap.TileTypeMapWriter;
 import osrs.dev.util.OptionsParser;
 import osrs.dev.util.ProgressBar;
 
@@ -55,8 +55,8 @@ public class Dumper
     private final ObjectManager objectManager;
     private final OverlayManager overlayManager;
     private final UnderlayManager underlayManager;
-    private final ICollisionMapWriter collisionMapWriter;
-    private final ITileTypeMapWriter tileTypeMapWriter;
+    private final CollisionMapWriter collisionMapWriter;
+    private final TileTypeMapWriter tileTypeMapWriter;
 
     // Coordinate bounds tracking
     private int minX = Integer.MAX_VALUE;

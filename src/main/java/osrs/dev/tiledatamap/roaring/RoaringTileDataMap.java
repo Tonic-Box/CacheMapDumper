@@ -1,21 +1,25 @@
-package osrs.dev.tiletypemap.roaring;
+package osrs.dev.tiledatamap.roaring;
 
 import org.roaringbitmap.RoaringBitmap;
 import osrs.dev.dumper.ConfigurableCoordIndexer;
 import osrs.dev.dumper.ICoordIndexer;
-import osrs.dev.tiletypemap.ITileTypeMap;
+import osrs.dev.tiledatamap.ITileDataMap;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-public class RoaringTileTypeMap implements ITileTypeMap {
+/**
+ * Generic RoaringBitmap-based data map.
+ * Stores arbitrary data bits at tile coordinates using RoaringBitmap.
+ */
+public class RoaringTileDataMap implements ITileDataMap {
     static final ConfigurableCoordIndexer INDEXER
             = ConfigurableCoordIndexer.ROARINGBITMAP_5BIT_DATA_COORD_INDEXER;
 
     private final RoaringBitmap bitmap;
 
-    public RoaringTileTypeMap(RoaringBitmap bitmap) {
+    public RoaringTileDataMap(RoaringBitmap bitmap) {
         this.bitmap = bitmap;
     }
 
@@ -24,6 +28,7 @@ public class RoaringTileTypeMap implements ITileTypeMap {
         return INDEXER;
     }
 
+    @Override
     public boolean isDataBitSet(int x, int y, int plane, int dataBitIndex) {
         int bitIndex = INDEXER.packToBitmapIndex(x, y, plane, dataBitIndex);
         return bitmap.contains(bitIndex);
@@ -34,14 +39,14 @@ public class RoaringTileTypeMap implements ITileTypeMap {
      * The input stream should already be decompressed if it was gzipped.
      *
      * @param inputStream input stream containing RoaringBitmap data
-     * @return loaded tile type map
+     * @return loaded data map
      * @throws IOException if an I/O error occurs
      */
-    public static RoaringTileTypeMap load(InputStream inputStream) throws IOException {
+    public static RoaringTileDataMap load(InputStream inputStream) throws IOException {
         byte[] bytes = inputStream.readAllBytes();
         RoaringBitmap bitmap = new RoaringBitmap();
         bitmap.deserialize(ByteBuffer.wrap(bytes));
         bitmap.runOptimize();
-        return new RoaringTileTypeMap(bitmap);
+        return new RoaringTileDataMap(bitmap);
     }
 }

@@ -1,8 +1,8 @@
-package osrs.dev.tiletypemap.sparse;
+package osrs.dev.tiledatamap.sparse;
 
 import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
 import osrs.dev.dumper.ConfigurableCoordIndexer;
-import osrs.dev.tiletypemap.ITileTypeMapWriter;
+import osrs.dev.tiledatamap.ITileDataMapWriter;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,16 +10,15 @@ import java.io.ObjectOutputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * SparseBitSet-based tile type map writer with 4-bit type encoding.
- * Uses bits 27-30 to encode type values 0-15.
- * Does not support planes other than 0.
+ * Generic SparseBitSet-based data map writer.
+ * Writes arbitrary data bits at tile coordinates using SparseBitSet.
  */
-public class SparseBitSetTileTypeMapWriter implements ITileTypeMapWriter {
+public class SparseTileDataMapWriter implements ITileDataMapWriter {
     static final ConfigurableCoordIndexer INDEXER
-            = SparseBitSetTileTypeMap.INDEXER.withValidationEnabled();
+            = SparseTileDataMap.INDEXER.withValidationEnabled();
     private final SparseBitSet bitSet;
 
-    public SparseBitSetTileTypeMapWriter() {
+    public SparseTileDataMapWriter() {
         this.bitSet = new SparseBitSet();
     }
 
@@ -38,9 +37,9 @@ public class SparseBitSetTileTypeMapWriter implements ITileTypeMapWriter {
     }
 
     /**
-     * Saves the tile type map with GZIP compression.
+     * Saves the data map with GZIP compression.
      *
-     * @param filePath path to save the tile type map
+     * @param filePath path to save the data map
      * @throws IOException if saving fails
      */
     public void saveGzipped(String filePath) throws IOException {
@@ -52,9 +51,9 @@ public class SparseBitSetTileTypeMapWriter implements ITileTypeMapWriter {
     }
 
     /**
-     * Saves the tile type map without GZIP compression.
+     * Saves the data map without GZIP compression.
      *
-     * @param filePath path to save the tile type map
+     * @param filePath path to save the data map
      * @throws IOException if saving fails
      */
     public void saveWithoutGzip(String filePath) throws IOException {

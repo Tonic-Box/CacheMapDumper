@@ -1,10 +1,12 @@
 package osrs.dev.tiletypemap;
 
 import lombok.extern.slf4j.Slf4j;
-import osrs.dev.tiletypemap.roaring.RoaringTileTypeMapWriter;
-import osrs.dev.tiletypemap.sparse.SparseBitSetTileTypeMapWriter;
-import osrs.dev.tiletypemap.roaring.RoaringTileTypeMap;
-import osrs.dev.tiletypemap.sparse.SparseBitSetTileTypeMap;
+import osrs.dev.tiledatamap.ITileDataMap;
+import osrs.dev.tiledatamap.ITileDataMapWriter;
+import osrs.dev.tiledatamap.roaring.RoaringTileDataMap;
+import osrs.dev.tiledatamap.roaring.RoaringTileDataMapWriter;
+import osrs.dev.tiledatamap.sparse.SparseTileDataMap;
+import osrs.dev.tiledatamap.sparse.SparseTileDataMapWriter;
 
 import java.io.*;
 import java.util.zip.GZIPInputStream;
@@ -42,7 +44,7 @@ public class TileTypeMapFactory {
      * @return the loaded tile type map
      * @throws Exception if loading fails
      */
-    public static ITileTypeMap load(String filePath) throws Exception {
+    public static TileTypeMap load(String filePath) throws Exception {
         File file = new File(filePath);
         if (!file.exists() || !file.isFile()) {
             System.err.println("File not found: " + filePath);
@@ -56,13 +58,17 @@ public class TileTypeMapFactory {
         try (FileInputStream fis = new FileInputStream(file);
              InputStream inputStream = gzipped ? new GZIPInputStream(fis) : fis) {
 
+            ITileDataMap dataMap;
             switch (format) {
                 case ROARING:
-                    return RoaringTileTypeMap.load(inputStream);
+                    dataMap = RoaringTileDataMap.load(inputStream);
+                    break;
                 case SPARSE_BITSET:
                 default:
-                    return SparseBitSetTileTypeMap.load(inputStream);
+                    dataMap = SparseTileDataMap.load(inputStream);
+                    break;
             }
+            return new TileTypeMap(dataMap);
         }
     }
 
@@ -102,22 +108,17 @@ public class TileTypeMapFactory {
      * @param format the format to write
      * @return a new tile type map writer
      */
-    public static ITileTypeMapWriter createWriter(Format format) {
+    public static TileTypeMapWriter createWriter(Format format) {
+        ITileDataMapWriter dataMapWriter;
         switch (format) {
             case ROARING:
-                return new RoaringTileTypeMapWriter();
+                dataMapWriter = new RoaringTileDataMapWriter();
+                break;
             case SPARSE_BITSET:
             default:
-                return new SparseBitSetTileTypeMapWriter();
+                dataMapWriter = new SparseTileDataMapWriter();
+                break;
         }
-    }
-
-    /**
-     * Creates a new writer for the default format (RoaringBitmap).
-     *
-     * @return a new tile type map writer
-     */
-    public static ITileTypeMapWriter createWriter() {
-        return createWriter(Format.ROARING);
+        return new TileTypeMapWriter(dataMapWriter);
     }
 }
