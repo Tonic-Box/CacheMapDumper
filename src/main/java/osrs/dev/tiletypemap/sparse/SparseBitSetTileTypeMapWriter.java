@@ -10,7 +10,8 @@ import java.util.zip.GZIPOutputStream;
 
 /**
  * SparseBitSet-based tile type map writer with 4-bit type encoding.
- * Uses bits 28-31 to encode type values 0-15.
+ * Uses bits 27-30 to encode type values 0-15.
+ * Does not support planes other than 0.
  */
 public class SparseBitSetTileTypeMapWriter implements ITileTypeMapWriter {
     private final SparseBitSet bitSet;

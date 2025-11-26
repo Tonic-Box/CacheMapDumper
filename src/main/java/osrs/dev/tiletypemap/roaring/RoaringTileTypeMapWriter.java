@@ -26,10 +26,10 @@ public class RoaringTileTypeMapWriter implements ITileTypeMapWriter {
     @Override
     public synchronized void setTileType(int x, int y, int plane, byte type) {
         int packed = RoaringTileTypeMap.packing.pack(x, y, plane);
-        if ((type & 0b0001) != 0) bitmap.add(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_0);
-        if ((type & 0b0010) != 0) bitmap.add(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_1);
-        if ((type & 0b0100) != 0) bitmap.add(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_2);
-        if ((type & 0b1000) != 0) bitmap.add(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_3);
+        if ((type & 0b0001) != 0) bitmap.add(packed | RoaringTileTypeMap.TILE_TYPE_BIT_0);
+        if ((type & 0b0010) != 0) bitmap.add(packed | RoaringTileTypeMap.TILE_TYPE_BIT_1);
+        if ((type & 0b0100) != 0) bitmap.add(packed | RoaringTileTypeMap.TILE_TYPE_BIT_2);
+        if ((type & 0b1000) != 0) bitmap.add(packed | RoaringTileTypeMap.TILE_TYPE_BIT_3);
     }
 
     @Override
