@@ -16,17 +16,12 @@ import java.nio.ByteBuffer;
  * Bit SET = BLOCKED (cannot walk in that direction)
  */
 public class RoaringCollisionMap implements ICollisionMap {
+    public static final ICoordPacker packing = ConfigurableCoordPacker.JAGEX_PACKING;
 
     private final RoaringBitmap bitmap;
-    private final ICoordPacker packing;
 
     public RoaringCollisionMap(RoaringBitmap bitmap) {
-        this(bitmap, ConfigurableCoordPacker.JAGEX_PACKING);
-    }
-
-    public RoaringCollisionMap(RoaringBitmap bitmap, ICoordPacker packing) {
         this.bitmap = bitmap;
-        this.packing = packing;
     }
 
 

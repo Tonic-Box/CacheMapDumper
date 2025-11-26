@@ -15,14 +15,13 @@ import java.nio.ByteBuffer;
  * Uses bits 28-31 to encode type values 0-15.
  */
 public class RoaringTileTypeMap implements ITileTypeMap {
+    public static final int TILE_TYPE_BIT_0 = 1 << 28;
+    public static final int TILE_TYPE_BIT_1 = 1 << 29;
+    public static final int TILE_TYPE_BIT_2 = 1 << 30;
+    public static final int TILE_TYPE_BIT_3 = 1 << 31;
+    public static final ICoordPacker packing = ConfigurableCoordPacker.COMPACT_13BIT_PACKING;
 
     private final RoaringBitmap bitmap;
-    // Bit position constants for encoding type value in upper coordinate bits
-    public static final int TILE_TYPE_BIT_0 = 1 << 28;  // value 1
-    public static final int TILE_TYPE_BIT_1 = 1 << 29;  // value 2
-    public static final int TILE_TYPE_BIT_2 = 1 << 30;  // value 4
-    public static final int TILE_TYPE_BIT_3 = 1 << 31;  // value 8
-    private static final ICoordPacker packing = ConfigurableCoordPacker.COMPACT_13BIT_PACKING;
 
     public RoaringTileTypeMap(RoaringBitmap bitmap) {
         this.bitmap = bitmap;

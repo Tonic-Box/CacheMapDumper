@@ -7,7 +7,8 @@ package osrs.dev.dumper;
 public class ConfigurableCoordPacker implements ICoordPacker {
     /**
      * Jagex format: 14 bits X, 14 bits Y, 2 bits plane
-     * leaving 3 bits left over for data - enough for collision
+     * leaving 2 bits left over for data - enough for collision
+     * SparseBitSet can't use sign bit, so there's only 1 bit left over.
      */
     public static final ConfigurableCoordPacker JAGEX_PACKING = new ConfigurableCoordPacker(
             16383, 0,   // xMask, xShift
@@ -16,7 +17,8 @@ public class ConfigurableCoordPacker implements ICoordPacker {
     );
     /**
      * Compact format: 13 bits X, 13 bits Y, 2 bits plane,
-     * leaving 5 bits left over for data - enough for tile types (and technically collision at the same time)
+     * leaving 4 bits left over for data - enough for tile types
+     * SparseBitSet can't use sign bit, so there's only 3 bits left over.
      */
     public static final ConfigurableCoordPacker COMPACT_13BIT_PACKING = new ConfigurableCoordPacker(
             8191, 0,   // xMask, xShift
@@ -25,7 +27,8 @@ public class ConfigurableCoordPacker implements ICoordPacker {
     );
     /**
      * Compact format: 13 bits X, 13 bits Y, plane unsupported,
-     * leaving enough bits for tile type data in a SparseBitSetTileTypeMap
+     * leaving 6 bits for tile type data in a SparseBitSetTileTypeMap
+     * SparseBitSet can't use sign bit, so there's only 5 bits left over.
      */
     public static final ConfigurableCoordPacker SPARSE_TILETYPE_MAP_PACKING_NO_PLANE = new ConfigurableCoordPacker(
                     8191, 0,   // xMask, xShift

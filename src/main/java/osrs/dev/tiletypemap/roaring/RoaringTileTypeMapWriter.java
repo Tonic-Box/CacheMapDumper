@@ -17,9 +17,7 @@ import java.util.zip.GZIPOutputStream;
  * Uses 4 bits (28-31) to encode type values 0-15.
  */
 public class RoaringTileTypeMapWriter implements ITileTypeMapWriter {
-
     private final RoaringBitmap bitmap;
-    private static final ICoordPacker packing = ConfigurableCoordPacker.COMPACT_13BIT_PACKING;
 
     public RoaringTileTypeMapWriter() {
         this.bitmap = new RoaringBitmap();
@@ -27,7 +25,7 @@ public class RoaringTileTypeMapWriter implements ITileTypeMapWriter {
 
     @Override
     public synchronized void setTileType(int x, int y, int plane, byte type) {
-        int packed = packing.pack(x, y, plane);
+        int packed = RoaringTileTypeMap.packing.pack(x, y, plane);
         if ((type & 0b0001) != 0) bitmap.add(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_0);
         if ((type & 0b0010) != 0) bitmap.add(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_1);
         if ((type & 0b0100) != 0) bitmap.add(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_2);

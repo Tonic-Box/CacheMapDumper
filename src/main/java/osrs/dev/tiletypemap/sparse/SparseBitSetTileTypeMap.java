@@ -1,10 +1,9 @@
 package osrs.dev.tiletypemap.sparse;
 
 import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
-import osrs.dev.tiletypemap.ITileTypeMap;
-import osrs.dev.dumper.ICoordPacker;
 import osrs.dev.dumper.ConfigurableCoordPacker;
-import osrs.dev.tiletypemap.TileType;
+import osrs.dev.dumper.ICoordPacker;
+import osrs.dev.tiletypemap.ITileTypeMap;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,17 +14,17 @@ import java.io.ObjectInputStream;
  * Uses bits 28-31 to encode type values 0-15.
  */
 public class SparseBitSetTileTypeMap implements ITileTypeMap {
-
-    private final SparseBitSet bitSet;
     /**
      * Turns out this data structure can't hold a index 32 bit value like RoaringBitMap can
      * so the encoding must be even more compact and does not support plane
      */
-    private static final ICoordPacker packing = ConfigurableCoordPacker.SPARSE_TILETYPE_MAP_PACKING_NO_PLANE;
-    public static final int SPARSE_TILE_TYPE_BIT_0 = 1 << 26;  // value 1
-    public static final int SPARSE_TILE_TYPE_BIT_1 = 1 << 27;  // value 2
-    public static final int SPARSE_TILE_TYPE_BIT_2 = 1 << 28;  // value 4
-    public static final int SPARSE_TILE_TYPE_BIT_3 = 1 << 29;  // value 8
+    public static final ICoordPacker packing = ConfigurableCoordPacker.SPARSE_TILETYPE_MAP_PACKING_NO_PLANE;
+    public static final int SPARSE_TILE_TYPE_BIT_0 = 1 << 27;
+    public static final int SPARSE_TILE_TYPE_BIT_1 = 1 << 28;
+    public static final int SPARSE_TILE_TYPE_BIT_2 = 1 << 29;
+    public static final int SPARSE_TILE_TYPE_BIT_3 = 1 << 30;
+
+    private final SparseBitSet bitSet;
 
     private SparseBitSetTileTypeMap(SparseBitSet bitSet) {
         this.bitSet = bitSet;

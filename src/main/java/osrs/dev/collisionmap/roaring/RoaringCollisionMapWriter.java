@@ -15,7 +15,6 @@ import java.util.zip.GZIPOutputStream;
  */
 public class RoaringCollisionMapWriter implements ICollisionMapWriter {
     private final RoaringBitmap bitmap;
-    private static final ICoordPacker packing = ConfigurableCoordPacker.JAGEX_PACKING;
 
     public RoaringCollisionMapWriter() {
         this.bitmap = new RoaringBitmap();
@@ -23,7 +22,7 @@ public class RoaringCollisionMapWriter implements ICollisionMapWriter {
 
     @Override
     public synchronized void setPathableNorth(int x, int y, int plane, boolean pathable) {
-        int index = packing.pack(x, y, plane);
+        int index = RoaringCollisionMap.packing.pack(x, y, plane);
         if (pathable) {
             bitmap.remove(index);
         } else {
@@ -33,7 +32,7 @@ public class RoaringCollisionMapWriter implements ICollisionMapWriter {
 
     @Override
     public synchronized void setPathableEast(int x, int y, int plane, boolean pathable) {
-        int index = packing.packEast(x, y, plane);
+        int index = RoaringCollisionMap.packing.packEast(x, y, plane);
         if (pathable) {
             bitmap.remove(index);
         } else {

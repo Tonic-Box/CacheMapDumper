@@ -2,9 +2,6 @@ package osrs.dev.tiletypemap.sparse;
 
 import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
 import osrs.dev.tiletypemap.ITileTypeMapWriter;
-import osrs.dev.dumper.ICoordPacker;
-import osrs.dev.dumper.ConfigurableCoordPacker;
-import osrs.dev.tiletypemap.TileType;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,9 +13,7 @@ import java.util.zip.GZIPOutputStream;
  * Uses bits 28-31 to encode type values 0-15.
  */
 public class SparseBitSetTileTypeMapWriter implements ITileTypeMapWriter {
-
     private final SparseBitSet bitSet;
-    private static final ICoordPacker packing = ConfigurableCoordPacker.SPARSE_TILETYPE_MAP_PACKING_NO_PLANE;
 
     public SparseBitSetTileTypeMapWriter() {
         this.bitSet = new SparseBitSet();
@@ -27,7 +22,7 @@ public class SparseBitSetTileTypeMapWriter implements ITileTypeMapWriter {
     @Override
     public synchronized void setTileType(int x, int y, int plane, byte type) {
         if (plane != 0) return; // Only plane 0 is supported in this implementation
-        int packed = packing.pack(x, y, plane);
+        int packed = SparseBitSetTileTypeMap.packing.pack(x, y, plane);
         if ((type & 0b0001) != 0) bitSet.set(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_0);
         if ((type & 0b0010) != 0) bitSet.set(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_1);
         if ((type & 0b0100) != 0) bitSet.set(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_2);

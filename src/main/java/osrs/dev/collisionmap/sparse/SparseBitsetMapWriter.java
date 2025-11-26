@@ -17,8 +17,9 @@ import java.util.zip.GZIPOutputStream;
  * This is inverted from the interface semantics where pathable=true means can walk.
  */
 public class SparseBitsetMapWriter implements ICollisionMapWriter {
-    private final SparseBitSet bitSet;
     private static final ICoordPacker packing = ConfigurableCoordPacker.JAGEX_PACKING;
+
+    private final SparseBitSet bitSet;
 
 
     public SparseBitsetMapWriter() {
