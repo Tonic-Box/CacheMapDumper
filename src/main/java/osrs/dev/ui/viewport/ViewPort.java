@@ -1,7 +1,9 @@
 package osrs.dev.ui.viewport;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import osrs.dev.Main;
+import osrs.dev.tiletypemap.TileType;
 import osrs.dev.ui.ViewerMode;
 import osrs.dev.util.WorldPoint;
 import java.awt.*;
@@ -22,6 +24,25 @@ public class ViewPort
     private int lastHeight = 0;
     private ViewerMode viewerMode = ViewerMode.COLLISION;
 
+    /**
+     * Immutable map of tile types to their rendering colors.
+     */
+    private static final ImmutableMap<Byte, Color> TILE_TYPE_COLORS = ImmutableMap.<Byte, Color>builder()
+            .put(TileType.WATER, new Color(0, 100, 200))                   // Blue
+            .put(TileType.CRANDOR_SMEGMA_WATER, new Color(100, 150, 100))  // Greenish
+            .put(TileType.TEMPOR_STORM_WATER, new Color(80, 80, 150))      // Dark blue
+            .put(TileType.DISEASE_WATER, new Color(100, 180, 80))           // Sickly green
+            .put(TileType.KELP_WATER, new Color(0, 150, 100))              // Teal
+            .put(TileType.SUNBAKED_WATER, new Color(200, 180, 100))         // Sandy
+            .put(TileType.JAGGED_REEFS_WATER, new Color(100, 80, 80))       // Brown
+            .put(TileType.SHARP_CRYSTAL_WATER, new Color(180, 100, 200))    // Purple
+            .put(TileType.ICE_WATER, new Color(150, 200, 220))              // Light blue/cyan
+            .put(TileType.NE_PURPLE_GRAY_WATER, new Color(140, 120, 160))   // Purple-gray
+            .put(TileType.NW_GRAY_WATER, new Color(120, 120, 130))          // Gray-blue
+            .put(TileType.SE_PURPLE_WATER, new Color(160, 100, 180))        // Purple
+            .build();
+
+    private static final Color DEFAULT_COLOR = new Color(150, 150, 150);   // Unknown - Gray
 
     /**
      * Constructs a new ViewPort object.
@@ -135,17 +156,7 @@ public class ViewPort
      * Gets a color for a tile type.
      */
     private Color getTileTypeColor(byte tileType) {
-        switch (tileType) {
-            case 1: return new Color(0, 100, 200);       // WATER - Blue
-            case 2: return new Color(100, 150, 100);     // CRANDOR_SMEGMA_WATER - Greenish
-            case 3: return new Color(80, 80, 150);       // TEMPOR_STORM_WATER - Dark blue
-            case 4: return new Color(100, 180, 80);      // DISEASE_WATER - Sickly green
-            case 5: return new Color(0, 150, 100);       // KELP_WATER - Teal
-            case 6: return new Color(200, 180, 100);     // SUNBAKED_WATER - Sandy
-            case 7: return new Color(100, 80, 80);       // JAGGED_REEFS_WATER - Brown
-            case 8: return new Color(180, 100, 200);     // SHARP_CRYSTAL_WATER - Purple
-            default: return new Color(150, 150, 150);    // Unknown - Gray
-        }
+        return TILE_TYPE_COLORS.getOrDefault(tileType, DEFAULT_COLOR);
     }
 
     /**
