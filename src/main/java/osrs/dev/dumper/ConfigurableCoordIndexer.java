@@ -22,7 +22,7 @@ Z range: 0 to 3 (span: 4)
     public static final ConfigurableCoordIndexer ROARINGBITMAP_4BIT_DATA_COORD_INDEXER = new Builder()
             .maxBits(32)
             .xBits(13)
-            .xBase(700)
+            .xBase(700) // X Lower bound as we know it is 960, but 700 gives some extra room if the map expands
             .yBits(14) // No Y base needed as the span fits into 14 bits regardless
             .planeBits(2)
             .build();

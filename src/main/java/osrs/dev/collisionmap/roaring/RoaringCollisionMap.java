@@ -18,7 +18,8 @@ import java.nio.ByteBuffer;
 public class RoaringCollisionMap implements ICollisionMap {
     static final int NORTH_DATA_BIT_POS = 0;
     static final int EAST_DATA_BIT_POS = 1;
-    static final ICoordIndexer INDEXER = ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER;
+    static final ConfigurableCoordIndexer INDEXER
+            = ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER;
 
     private final RoaringBitmap bitmap;
 

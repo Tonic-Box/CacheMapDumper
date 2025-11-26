@@ -2,6 +2,8 @@ package osrs.dev.collisionmap.sparse;
 
 import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
 import osrs.dev.collisionmap.ICollisionMapWriter;
+import osrs.dev.dumper.ConfigurableCoordIndexer;
+import osrs.dev.dumper.ICoordIndexer;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,6 +17,9 @@ import java.util.zip.GZIPOutputStream;
  * This is inverted from the interface semantics where pathable=true means can walk.
  */
 public class SparseBitsetMapWriter implements ICollisionMapWriter {
+    static final ConfigurableCoordIndexer INDEXER
+            = SparseBitSetCollisionMap.INDEXER.withValidationEnabled();
+
     private final SparseBitSet bitSet;
 
 

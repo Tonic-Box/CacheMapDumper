@@ -1,6 +1,7 @@
 package osrs.dev.tiletypemap.sparse;
 
 import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
+import osrs.dev.dumper.ConfigurableCoordIndexer;
 import osrs.dev.tiletypemap.ITileTypeMapWriter;
 
 import java.io.FileOutputStream;
@@ -14,6 +15,8 @@ import java.util.zip.GZIPOutputStream;
  * Does not support planes other than 0.
  */
 public class SparseBitSetTileTypeMapWriter implements ITileTypeMapWriter {
+    static final ConfigurableCoordIndexer INDEXER
+            = SparseBitSetTileTypeMap.INDEXER.withValidationEnabled();
     private final SparseBitSet bitSet;
 
     public SparseBitSetTileTypeMapWriter() {
@@ -22,7 +25,7 @@ public class SparseBitSetTileTypeMapWriter implements ITileTypeMapWriter {
 
     @Override
     public synchronized void setDataBit(int x, int y, int plane, int dataBitIndex) {
-        bitSet.set(SparseBitSetTileTypeMap.INDEXER.packToBitmapIndex(x, y, plane, dataBitIndex));
+        bitSet.set(INDEXER.packToBitmapIndex(x, y, plane, dataBitIndex));
     }
 
     @Override

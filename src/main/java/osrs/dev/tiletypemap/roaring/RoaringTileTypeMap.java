@@ -10,7 +10,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 public class RoaringTileTypeMap implements ITileTypeMap {
-    static final ICoordIndexer INDEXER = ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER;
+    static final ConfigurableCoordIndexer INDEXER
+            = ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER;
 
     private final RoaringBitmap bitmap;
 

@@ -2,11 +2,17 @@ package osrs.dev.collisionmap.roaring;
 
 import org.roaringbitmap.RoaringBitmap;
 import osrs.dev.collisionmap.ICollisionMapWriter;
+import osrs.dev.dumper.ConfigurableCoordIndexer;
+import osrs.dev.dumper.ICoordIndexer;
 
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
 public class RoaringCollisionMapWriter implements ICollisionMapWriter {
+    static final ConfigurableCoordIndexer INDEXER
+            = RoaringCollisionMap.INDEXER.withValidationEnabled();
     private final RoaringBitmap bitmap;
 
     public RoaringCollisionMapWriter() {
@@ -18,7 +24,7 @@ public class RoaringCollisionMapWriter implements ICollisionMapWriter {
      * blocked=true → set bit, blocked=false → clear bit
      */
     private synchronized void setBlocked(int index, boolean blocked) {
-        if (blocked){
+        if (blocked) {
             bitmap.add(index);
         } else {
             bitmap.remove(index);
@@ -28,13 +34,14 @@ public class RoaringCollisionMapWriter implements ICollisionMapWriter {
     @Override
     public void setPathableNorth(int x, int y, int plane, boolean pathable) {
         // Invert: pathable=true means NOT blocked, so set bit to false
-        setBlocked(RoaringCollisionMap.INDEXER.packToBitmapIndex(x, y, plane, RoaringCollisionMap.NORTH_DATA_BIT_POS), !pathable);
+        setBlocked(INDEXER.packToBitmapIndex(x, y, plane, RoaringCollisionMap.NORTH_DATA_BIT_POS), !pathable);
     }
 
     @Override
     public void setPathableEast(int x, int y, int plane, boolean pathable) {
-        setBlocked(RoaringCollisionMap.INDEXER.packToBitmapIndex(x, y, plane, RoaringCollisionMap.EAST_DATA_BIT_POS), !pathable);
+        setBlocked(INDEXER.packToBitmapIndex(x, y, plane, RoaringCollisionMap.EAST_DATA_BIT_POS), !pathable);
     }
+
     @Override
     public void save(String filePath) throws IOException {
         if (filePath.endsWith(".gz")) {

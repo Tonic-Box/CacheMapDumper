@@ -1,6 +1,7 @@
 package osrs.dev.tiletypemap.roaring;
 
 import org.roaringbitmap.RoaringBitmap;
+import osrs.dev.dumper.ConfigurableCoordIndexer;
 import osrs.dev.dumper.ICoordIndexer;
 import osrs.dev.tiletypemap.ITileTypeMapWriter;
 import osrs.dev.tiletypemap.sparse.SparseBitSetTileTypeMap;
@@ -15,6 +16,8 @@ import java.util.zip.GZIPOutputStream;
  * Uses 4 bits (28-31) to encode type values 0-15.
  */
 public class RoaringTileTypeMapWriter implements ITileTypeMapWriter {
+    static final ConfigurableCoordIndexer INDEXER
+            = RoaringTileTypeMap.INDEXER.withValidationEnabled();
     private final RoaringBitmap bitmap;
 
     public RoaringTileTypeMapWriter() {
@@ -23,7 +26,7 @@ public class RoaringTileTypeMapWriter implements ITileTypeMapWriter {
 
     @Override
     public synchronized void setDataBit(int x, int y, int plane, int dataBitIndex) {
-        bitmap.add(RoaringTileTypeMap.INDEXER.packToBitmapIndex(x, y, plane, dataBitIndex));
+        bitmap.add(INDEXER.packToBitmapIndex(x, y, plane, dataBitIndex));
     }
 
 
