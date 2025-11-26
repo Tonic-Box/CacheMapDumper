@@ -15,11 +15,6 @@ public class TileType {
     public static final byte JAGGED_REEFS_WATER = 7;
     public static final byte SHARP_CRYSTAL_WATER = 8;
 
-    // Bit position constants for encoding type value in upper coordinate bits
-    public static final int TILE_TYPE_BIT_0 = 1 << 28;  // value 1
-    public static final int TILE_TYPE_BIT_1 = 1 << 29;  // value 2
-    public static final int TILE_TYPE_BIT_2 = 1 << 30;  // value 4
-    public static final int TILE_TYPE_BIT_3 = 1 << 31;  // value 8
 
     public static ImmutableMap<Integer, Byte> SPRITE_ID_TO_TILE_TYPE = ImmutableMap.<Integer, Byte>builder()
             .put(1, WATER)

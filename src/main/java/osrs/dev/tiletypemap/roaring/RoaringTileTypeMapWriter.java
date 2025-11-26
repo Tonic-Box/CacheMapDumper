@@ -5,6 +5,7 @@ import osrs.dev.dumper.ConfigurableCoordPacker;
 import osrs.dev.dumper.ICoordPacker;
 import osrs.dev.tiletypemap.ITileTypeMapWriter;
 import osrs.dev.tiletypemap.TileType;
+import osrs.dev.tiletypemap.sparse.SparseBitSetTileTypeMap;
 
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
@@ -25,12 +26,12 @@ public class RoaringTileTypeMapWriter implements ITileTypeMapWriter {
     }
 
     @Override
-    public synchronized void setTileType(int x, int y, int plane, int type) {
+    public synchronized void setTileType(int x, int y, int plane, byte type) {
         int packed = packing.pack(x, y, plane);
-        if ((type & 1) != 0) bitmap.add(packed | TileType.TILE_TYPE_BIT_0);
-        if ((type & 2) != 0) bitmap.add(packed | TileType.TILE_TYPE_BIT_1);
-        if ((type & 4) != 0) bitmap.add(packed | TileType.TILE_TYPE_BIT_2);
-        if ((type & 8) != 0) bitmap.add(packed | TileType.TILE_TYPE_BIT_3);
+        if ((type & 0b0001) != 0) bitmap.add(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_0);
+        if ((type & 0b0010) != 0) bitmap.add(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_1);
+        if ((type & 0b0100) != 0) bitmap.add(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_2);
+        if ((type & 0b1000) != 0) bitmap.add(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_3);
     }
 
     @Override

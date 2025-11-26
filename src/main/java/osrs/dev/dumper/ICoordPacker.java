@@ -5,7 +5,6 @@ package osrs.dev.dumper;
  * Allows different bit layouts for encoding x, y, plane coordinates into a single int.
  */
 public interface ICoordPacker {
-
     /**
      * Flag bit for distinguishing east direction from north.
      * Applied at bit 30.

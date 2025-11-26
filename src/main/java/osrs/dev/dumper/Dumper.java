@@ -20,7 +20,8 @@ import net.runelite.cache.util.KeyProvider;
 import net.runelite.cache.util.XteaKeyManager;
 import osrs.dev.collisionmap.CollisionMapFactory;
 import osrs.dev.collisionmap.ICollisionMapWriter;
-import osrs.dev.tiletypemap.roaring.RoaringTileTypeMapWriter;
+import osrs.dev.tiletypemap.ITileTypeMapWriter;
+import osrs.dev.tiletypemap.TileTypeMapFactory;
 import osrs.dev.dumper.openrs2.OpenRS2;
 import osrs.dev.tiletypemap.TileType;
 import osrs.dev.util.OptionsParser;
@@ -55,7 +56,7 @@ public class Dumper
     private final OverlayManager overlayManager;
     private final UnderlayManager underlayManager;
     private final ICollisionMapWriter collisionMapWriter;
-    private final RoaringTileTypeMapWriter tileTypeMapWriter;
+    private final ITileTypeMapWriter tileTypeMapWriter;
 
     private static OptionsParser optionsParser;
     private static CollisionMapFactory.Format format = CollisionMapFactory.Format.ROARING;
@@ -73,7 +74,11 @@ public class Dumper
         this.overlayManager = new OverlayManager(store);
         this.underlayManager = new UnderlayManager(store);
         this.collisionMapWriter = CollisionMapFactory.createWriter(format);
-        this.tileTypeMapWriter = new RoaringTileTypeMapWriter();
+        // Convert CollisionMapFactory.Format to TileTypeMapFactory.Format
+        TileTypeMapFactory.Format tileTypeFormat = format == CollisionMapFactory.Format.SPARSE_BITSET
+                ? TileTypeMapFactory.Format.SPARSE_BITSET
+                : TileTypeMapFactory.Format.ROARING;
+        this.tileTypeMapWriter = TileTypeMapFactory.createWriter(tileTypeFormat);
         objectManager.load();
         overlayManager.load();
         underlayManager.load();

@@ -17,7 +17,7 @@ public interface ITileTypeMapWriter {
      * @param plane the plane
      * @param type the tile type value (0-15)
      */
-    void setTileType(int x, int y, int plane, int type);
+    void setTileType(int x, int y, int plane, byte type);
 
     /**
      * Saves the tile type map to a file.

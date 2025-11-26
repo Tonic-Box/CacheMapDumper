@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ConfigManager
 {
     @Getter
-    private final File configFile = new File(System.getProperty("user.home") + "/VitaX/collision/config.cfg");
+    private final File configFile = new File(System.getProperty("user.home") + "/VitaX/cachedumper/config.cfg");
     private FileBasedConfigurationBuilder<FileBasedConfiguration> builder;
 
     public ConfigManager()
@@ -28,6 +28,7 @@ public class ConfigManager
         map.put("output_dir", System.getProperty("user.home") + "/VitaX/");
         map.put("fresh_cache", true);
         map.put("format", "RoaringBitmap");
+        map.put("viewer_mode", "Collision");
         map.put("bg_color", "#F8F8F8");
         map.put("grid_color", "#00FFFF");
         map.put("collision_color", "#FF0000");
@@ -81,6 +82,10 @@ public class ConfigManager
         return getString("format");
     }
 
+    public String viewerMode() {
+        return getString("viewer_mode");
+    }
+
     public Color bgColor() {
         return Color.decode(getString("bg_color"));
     }
@@ -123,6 +128,10 @@ public class ConfigManager
 
     public void setFormat(String format) {
         setProperty("format", format);
+    }
+
+    public void setViewerMode(String viewerMode) {
+        setProperty("viewer_mode", viewerMode);
     }
 
     public void setBgColor(String colorHex) {

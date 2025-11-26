@@ -23,6 +23,15 @@ public class ConfigurableCoordPacker implements ICoordPacker {
             8191, 13,  // yMask, yShift
             0b11, 26     // planeMask, planeShift
     );
+    /**
+     * Compact format: 13 bits X, 13 bits Y, plane unsupported,
+     * leaving enough bits for tile type data in a SparseBitSetTileTypeMap
+     */
+    public static final ConfigurableCoordPacker SPARSE_TILETYPE_MAP_PACKING_NO_PLANE = new ConfigurableCoordPacker(
+                    8191, 0,   // xMask, xShift
+                    8191, 13,  // yMask, yShift
+                    0, 26     // planeMask, planeShift
+            );
 
     private final int xMask;
     private final int xShift;

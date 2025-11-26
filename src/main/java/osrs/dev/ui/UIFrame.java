@@ -31,11 +31,17 @@ public class UIFrame extends JFrame {
     private Future<?> current;
     private SettingsFrame settingsFrame;
     private JTextField worldPointField;
+    private JComboBox<ViewerMode> viewerModeComboBox;
+    private ViewerMode currentViewerMode;
 
     /**
      * Creates a new UI frame for the Collision Viewer.
      */
     public UIFrame() {
+        // Initialize viewer mode from config
+        String savedMode = Main.getConfigManager().viewerMode();
+        currentViewerMode = ViewerMode.fromDisplayName(savedMode);
+
         setIconImage(ImageUtil.loadImageResource(UIFrame.class, "icon.png"));
         setTitle("Collision Viewer");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -238,6 +244,20 @@ public class UIFrame extends JFrame {
 
         menuBar.add(worldPointField);
 
+        // Add viewer mode dropdown
+        menuBar.add(Box.createHorizontalStrut(10));
+        menuBar.add(new JLabel("Mode:"));
+        menuBar.add(Box.createHorizontalStrut(5));
+        viewerModeComboBox = new JComboBox<>(ViewerMode.values());
+        viewerModeComboBox.setSelectedItem(currentViewerMode);
+        viewerModeComboBox.setMaximumSize(new Dimension(100, 25));
+        viewerModeComboBox.addActionListener(e -> {
+            currentViewerMode = (ViewerMode) viewerModeComboBox.getSelectedItem();
+            Main.getConfigManager().setViewerMode(currentViewerMode.getDisplayName());
+            update();
+        });
+        menuBar.add(viewerModeComboBox);
+
         // Set the menu bar for the JFrame
         setJMenuBar(menuBar);
     }
@@ -248,7 +268,7 @@ public class UIFrame extends JFrame {
      */
     private JPanel createUpdatePanel() {
         JPanel updatePanel = new JPanel(new BorderLayout());
-        updatePanel.setBorder(BorderFactory.createTitledBorder("Update Collision"));
+        updatePanel.setBorder(BorderFactory.createTitledBorder("Update Dumps"));
 
         // Create a panel for input fields
         JPanel inputPanel = new JPanel(new GridLayout(5, 1));
@@ -294,7 +314,7 @@ public class UIFrame extends JFrame {
      * @return The update button.
      */
     private JButton getUpdateButton() {
-        JButton updateCollision = new JButton("Update Collision");
+        JButton updateCollision = new JButton("Update Dumps");
         updateCollision.addActionListener(e -> {
             SwingUtilities.invokeLater(() -> {
                 updateCollision.setText("Updating...");
@@ -325,7 +345,7 @@ public class UIFrame extends JFrame {
                     ex.printStackTrace();
                 }
                 SwingUtilities.invokeLater(() -> {
-                    updateCollision.setText("Update Collision");
+                    updateCollision.setText("Update Dumps");
                     updateCollision.setEnabled(true);
                     revalidate();
                     repaint();
@@ -341,8 +361,13 @@ public class UIFrame extends JFrame {
      * Updates the collision map.
      */
     public void update() {
-        if(Main.getCollision() == null)
+        // Check if the appropriate data is available for the current viewer mode
+        if (currentViewerMode == ViewerMode.COLLISION && Main.getCollision() == null) {
             return;
+        }
+        if (currentViewerMode == ViewerMode.TILE_TYPE && Main.getTileTypeMap() == null) {
+            return;
+        }
 
         if(busy())
             return;
@@ -350,7 +375,7 @@ public class UIFrame extends JFrame {
         worldPointField.setText(center.getX() + "," + center.getY() + "," + center.getPlane());
 
         current = ThreadPool.submit(() -> {
-            viewPort.render(base, mapView.getWidth(), mapView.getHeight(), zoomSlider.getValue());
+            viewPort.render(base, mapView.getWidth(), mapView.getHeight(), zoomSlider.getValue(), currentViewerMode);
             ImageIcon imageIcon = new ImageIcon(viewPort.getCanvas());
             mapView.setIcon(imageIcon);
         });

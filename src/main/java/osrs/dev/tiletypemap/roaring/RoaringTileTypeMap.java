@@ -17,6 +17,11 @@ import java.nio.ByteBuffer;
 public class RoaringTileTypeMap implements ITileTypeMap {
 
     private final RoaringBitmap bitmap;
+    // Bit position constants for encoding type value in upper coordinate bits
+    public static final int TILE_TYPE_BIT_0 = 1 << 28;  // value 1
+    public static final int TILE_TYPE_BIT_1 = 1 << 29;  // value 2
+    public static final int TILE_TYPE_BIT_2 = 1 << 30;  // value 4
+    public static final int TILE_TYPE_BIT_3 = 1 << 31;  // value 8
     private static final ICoordPacker packing = ConfigurableCoordPacker.COMPACT_13BIT_PACKING;
 
     public RoaringTileTypeMap(RoaringBitmap bitmap) {
@@ -27,10 +32,10 @@ public class RoaringTileTypeMap implements ITileTypeMap {
     public byte getTileType(int x, int y, int plane) {
         int packed = packing.pack(x, y, plane);
         byte type = 0;
-        if (bitmap.contains(packed | TileType.TILE_TYPE_BIT_0)) type |= 1;
-        if (bitmap.contains(packed | TileType.TILE_TYPE_BIT_1)) type |= 2;
-        if (bitmap.contains(packed | TileType.TILE_TYPE_BIT_2)) type |= 4;
-        if (bitmap.contains(packed | TileType.TILE_TYPE_BIT_3)) type |= 8;
+        if (bitmap.contains(packed | TILE_TYPE_BIT_0)) type |= 0b0001;
+        if (bitmap.contains(packed | TILE_TYPE_BIT_1)) type |= 0b0010;
+        if (bitmap.contains(packed | TILE_TYPE_BIT_2)) type |= 0b0100;
+        if (bitmap.contains(packed | TILE_TYPE_BIT_3)) type |= 0b1000;
         return type;
     }
 

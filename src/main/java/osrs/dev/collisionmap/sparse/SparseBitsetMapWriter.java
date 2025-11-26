@@ -29,7 +29,7 @@ public class SparseBitsetMapWriter implements ICollisionMapWriter {
      * Internal set - stores blocking state.
      * blocked=true → set bit, blocked=false → clear bit
      */
-    private void setBlocked(int index, boolean blocked) {
+    private synchronized void setBlocked(int index, boolean blocked) {
         bitSet.set(index, blocked);
     }
 

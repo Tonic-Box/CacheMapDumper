@@ -18,19 +18,20 @@ import java.util.zip.GZIPOutputStream;
 public class SparseBitSetTileTypeMapWriter implements ITileTypeMapWriter {
 
     private final SparseBitSet bitSet;
-    private static final ICoordPacker packing = ConfigurableCoordPacker.COMPACT_13BIT_PACKING;
+    private static final ICoordPacker packing = ConfigurableCoordPacker.SPARSE_TILETYPE_MAP_PACKING_NO_PLANE;
 
     public SparseBitSetTileTypeMapWriter() {
         this.bitSet = new SparseBitSet();
     }
 
     @Override
-    public void setTileType(int x, int y, int plane, int type) {
+    public synchronized void setTileType(int x, int y, int plane, byte type) {
+        if (plane != 0) return; // Only plane 0 is supported in this implementation
         int packed = packing.pack(x, y, plane);
-        if ((type & 1) != 0) bitSet.set(packed | TileType.TILE_TYPE_BIT_0);
-        if ((type & 2) != 0) bitSet.set(packed | TileType.TILE_TYPE_BIT_1);
-        if ((type & 4) != 0) bitSet.set(packed | TileType.TILE_TYPE_BIT_2);
-        if ((type & 8) != 0) bitSet.set(packed | TileType.TILE_TYPE_BIT_3);
+        if ((type & 0b0001) != 0) bitSet.set(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_0);
+        if ((type & 0b0010) != 0) bitSet.set(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_1);
+        if ((type & 0b0100) != 0) bitSet.set(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_2);
+        if ((type & 0b1000) != 0) bitSet.set(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_3);
     }
 
     @Override
