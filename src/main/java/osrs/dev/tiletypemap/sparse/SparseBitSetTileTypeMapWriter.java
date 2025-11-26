@@ -21,13 +21,8 @@ public class SparseBitSetTileTypeMapWriter implements ITileTypeMapWriter {
     }
 
     @Override
-    public synchronized void setTileType(int x, int y, int plane, byte type) {
-        if (plane != 0) return; // Only plane 0 is supported in this implementation
-        int packed = SparseBitSetTileTypeMap.packing.pack(x, y, plane);
-        if ((type & 0b0001) != 0) bitSet.set(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_0);
-        if ((type & 0b0010) != 0) bitSet.set(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_1);
-        if ((type & 0b0100) != 0) bitSet.set(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_2);
-        if ((type & 0b1000) != 0) bitSet.set(packed | SparseBitSetTileTypeMap.SPARSE_TILE_TYPE_BIT_3);
+    public synchronized void setDataBit(int x, int y, int plane, int dataBitIndex) {
+        bitSet.set(SparseBitSetTileTypeMap.INDEXER.packToBitmapIndex(x, y, plane, dataBitIndex));
     }
 
     @Override

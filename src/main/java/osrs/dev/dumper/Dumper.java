@@ -58,6 +58,14 @@ public class Dumper
     private final ICollisionMapWriter collisionMapWriter;
     private final ITileTypeMapWriter tileTypeMapWriter;
 
+    // Coordinate bounds tracking
+    private int minX = Integer.MAX_VALUE;
+    private int maxX = Integer.MIN_VALUE;
+    private int minY = Integer.MAX_VALUE;
+    private int maxY = Integer.MIN_VALUE;
+    private int minZ = Integer.MAX_VALUE;
+    private int maxZ = Integer.MIN_VALUE;
+
     private static OptionsParser optionsParser;
     private static CollisionMapFactory.Format format = CollisionMapFactory.Format.ROARING;
 
@@ -202,6 +210,27 @@ public class Dumper
             log.info("Wrote collision map to {}", OUTPUT_MAP.getPath());
             dumper.tileTypeMapWriter.save(OUTPUT_TILE_TYPES.getPath());
             log.info("Wrote tile type map to {}", OUTPUT_TILE_TYPES.getPath());
+
+            // Log coordinate bounds and calculate bits needed
+            log.info("=== COORDINATE BOUNDS ===");
+            log.info("X range: {} to {} (span: {})", dumper.minX, dumper.maxX, dumper.maxX - dumper.minX + 1);
+            log.info("Y range: {} to {} (span: {})", dumper.minY, dumper.maxY, dumper.maxY - dumper.minY + 1);
+            log.info("Z range: {} to {} (span: {})", dumper.minZ, dumper.maxZ, dumper.maxZ - dumper.minZ + 1);
+
+            // Calculate bits needed for unsigned representation
+            int bitsX = 32 - Integer.numberOfLeadingZeros(dumper.maxX);
+            int bitsY = 32 - Integer.numberOfLeadingZeros(dumper.maxY);
+            int bitsZ = dumper.maxZ == 0 ? 1 : 32 - Integer.numberOfLeadingZeros(dumper.maxZ);
+            log.info("Bits needed (unsigned): X={}, Y={}, Z={}", bitsX, bitsY, bitsZ);
+
+            // If using signed representation (for relative offsets)
+            int maxAbsX = Math.max(Math.abs(dumper.minX), Math.abs(dumper.maxX));
+            int maxAbsY = Math.max(Math.abs(dumper.minY), Math.abs(dumper.maxY));
+            int maxAbsZ = Math.max(Math.abs(dumper.minZ), Math.abs(dumper.maxZ));
+            int bitsXSigned = maxAbsX == 0 ? 1 : 32 - Integer.numberOfLeadingZeros(maxAbsX) + 1; // +1 for sign
+            int bitsYSigned = maxAbsY == 0 ? 1 : 32 - Integer.numberOfLeadingZeros(maxAbsY) + 1;
+            int bitsZSigned = maxAbsZ == 0 ? 1 : 32 - Integer.numberOfLeadingZeros(maxAbsZ) + 1;
+            log.info("Bits needed (signed): X={}, Y={}, Z={}", bitsXSigned, bitsYSigned, bitsZSigned);
         }
         catch (ExecutionException | InterruptedException e)
         {
@@ -223,6 +252,14 @@ public class Dumper
                 int regionX = baseX + localX;
                 for (int localY = 0; localY < Region.Y; localY++) {
                     int regionY = baseY + localY;
+                    // Track coordinate bounds
+                    minX = Math.min(minX, regionX);
+                    maxX = Math.max(maxX, regionX);
+                    minY = Math.min(minY, regionY);
+                    maxY = Math.max(maxY, regionY);
+                    minZ = Math.min(minZ, z);
+                    maxZ = Math.max(maxZ, z);
+
                     // processDebugging(region, localX, localY, z, regionX, regionY);
                     processCollisionOfRegionCoordinate(region, localX, localY, z, regionX, regionY);
                     processTileTypesOfRegionCoordinate(region, localX, localY, z, regionX, regionY);
@@ -231,25 +268,24 @@ public class Dumper
         }
     }
 
-    // 170 - 174 = Sharp crystal water
     private final Map<Integer, String> DEBUG_TILES = ImmutableMap.<Integer, String>builder()
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2787, 3227, 0), "Water 1")
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2805, 3229, 0), "Water 131")
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2807, 3229, 0), "Water 130")
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2810, 3229, 0), "Water 185") // Smegma water
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(3005, 2924, 0), "Water 136") // Tempor storm water (135 - 138)
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2578, 2830, 0), "Water 176") // Inoculation station disease water
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2366, 2300, 0), "Water 184") // Tangled kelp water (other sprite ids: 182, 183)
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(1654, 2473, 0), "Water 144") // Sunbaked water / weird glitter water
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(1211, 3009, 0), "Water 188") // Jagged reefs water
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2376, 2305, 0), "Water 133") // Deep ocean water at south
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2787, 3274, 0), "Fishing platform tile")
-            .put(ConfigurableCoordPacker.JAGEX_PACKING.pack(2737, 3299, 0), "Regular ground tile")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(2177, 3040, 0, 0), "Disease water 1")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(2177, 3043, 0, 0), "Disease water 2")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2719, 0, 0), "Storm water 1")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2715, 0, 0), "Storm water 2")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2712, 0, 0), "Storm water 3")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2707, 0, 0), "Storm water 4")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(3427, 2702, 0, 0), "Storm water 5")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2366, 0, 0), "Kelp water 1")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2364, 0, 0), "Kelp water 2")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2362, 0, 0), "Kelp water 3")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2358, 0, 0), "Kelp water 4")
+            .put(ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(1799, 2355, 0, 0), "Kelp water 5")
             .build();
 
 
     private void processDebugging(Region region, int localX, int localY, int plane, int regionX, int regionY) {
-        int packed = ConfigurableCoordPacker.JAGEX_PACKING.pack(regionX, regionY, plane);
+        int packed = ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER.packToBitmapIndex(regionX, regionY, plane, 0);
         if (!DEBUG_TILES.containsKey(packed)) {
             return;
         }
@@ -300,6 +336,7 @@ public class Dumper
         boolean noFloor = underlayId == 0 && overlayId == 0;
         output.append("PROCESSED: Floor type/settings: ").append(floorType).append(", No floor: ").append(noFloor).append("\n");
 
+        /*
         // Underlay definition
         if (underlayId > 0) {
             UnderlayDefinition underlayDef = findUnderlay(underlayId - 1);
@@ -317,7 +354,7 @@ public class Dumper
                 output.append("UNDERLAY DEFINITION (ID ").append(underlayId).append("): Not found\n");
             }
         }
-
+        */
         // Overlay definition
         if (overlayId > 0) {
             OverlayDefinition overlayDef = findOverlay(overlayId - 1);
@@ -330,6 +367,8 @@ public class Dumper
                 output.append("  Texture/Sprite ID: ").append(overlayDef.getTexture()).append("\n");
                 output.append("  RGB Color: ").append(overlayDef.getRgbColor()).append("\n");
                 output.append("  Secondary RGB Color: ").append(overlayDef.getSecondaryRgbColor()).append("\n");
+                /*
+
                 output.append("  Hide Underlay: ").append(overlayDef.isHideUnderlay()).append("\n");
                 output.append("  Hue: ").append(overlayDef.getHue()).append("\n");
                 output.append("  Saturation: ").append(overlayDef.getSaturation()).append("\n");
@@ -337,10 +376,13 @@ public class Dumper
                 output.append("  Other Hue (from secondary color): ").append(overlayDef.getOtherHue()).append("\n");
                 output.append("  Other Saturation (from secondary color): ").append(overlayDef.getOtherSaturation()).append("\n");
                 output.append("  Other Lightness (from secondary color): ").append(overlayDef.getOtherLightness()).append("\n");
+                 */
             } else {
                 output.append("OVERLAY DEFINITION (ID ").append(overlayId).append("): Not found\n");
             }
         }
+
+        /*
 
         // Objects on this tile
         output.append("Objects on this tile:\n");
@@ -383,6 +425,7 @@ public class Dumper
             output.append("  (No objects on this tile)\n");
         }
 
+         */
         output.append("=== END DEBUG TILE ===\n");
 
         // Write to file
@@ -399,6 +442,9 @@ public class Dumper
         }
     }
 
+    private void processArbitraryDataOfRegionCoordinate(Region region, int localX, int localY, int plane, int regionX, int regionY) {
+
+    }
 
     private void processTileTypesOfRegionCoordinate(Region region, int localX, int localY, int plane, int regionX, int regionY) {
         boolean isBridge = (region.getTileSetting(1, localX, localY) & 2) != 0;

@@ -1,29 +1,17 @@
 package osrs.dev.tiletypemap.sparse;
 
 import VitaX.services.local.pathfinder.engine.collision.SparseBitSet;
-import osrs.dev.dumper.ConfigurableCoordPacker;
-import osrs.dev.dumper.ICoordPacker;
+import osrs.dev.dumper.ConfigurableCoordIndexer;
+import osrs.dev.dumper.ICoordIndexer;
 import osrs.dev.tiletypemap.ITileTypeMap;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 
-/**
- * SparseBitSet-based tile type map with 4-bit type encoding.
- * Uses bits 27-30 to encode type values 0-15.
- * Does not support planes other than 0.
- */
 public class SparseBitSetTileTypeMap implements ITileTypeMap {
-    /**
-     * Turns out this data structure can't hold a index 32 bit value like RoaringBitMap can
-     * so the encoding must be even more compact and does not support plane
-     */
-    public static final ICoordPacker packing = ConfigurableCoordPacker.SPARSE_TILETYPE_MAP_PACKING_NO_PLANE;
-    public static final int SPARSE_TILE_TYPE_BIT_0 = 1 << 27;
-    public static final int SPARSE_TILE_TYPE_BIT_1 = 1 << 28;
-    public static final int SPARSE_TILE_TYPE_BIT_2 = 1 << 29;
-    public static final int SPARSE_TILE_TYPE_BIT_3 = 1 << 30;
+     static final ICoordIndexer INDEXER
+             = ConfigurableCoordIndexer.SPARSEBITSET_4BIT_DATA_COORD_INDEXER_PLANES01;
 
     private final SparseBitSet bitSet;
 
@@ -32,16 +20,15 @@ public class SparseBitSetTileTypeMap implements ITileTypeMap {
     }
 
     @Override
-    public byte getTileType(int x, int y, int plane) {
-        if (plane != 0) return 0; // Only plane 0 is supported in this implementation
-        int packed = packing.pack(x, y, plane);
-        byte type = 0;
-        if (bitSet.get(packed | SPARSE_TILE_TYPE_BIT_0)) type |= 0b0001;
-        if (bitSet.get(packed | SPARSE_TILE_TYPE_BIT_1)) type |= 0b0010;
-        if (bitSet.get(packed | SPARSE_TILE_TYPE_BIT_2)) type |= 0b0100;
-        if (bitSet.get(packed | SPARSE_TILE_TYPE_BIT_3)) type |= 0b1000;
-        return type;
+    public ICoordIndexer getIndexer() {
+        return INDEXER;
     }
+
+    public boolean isDataBitSet(int x, int y, int plane, int dataBitIndex) {
+        int bitIndex = INDEXER.packToBitmapIndex(x, y, plane, dataBitIndex);
+        return bitSet.get(bitIndex);
+    }
+
 
     /**
      * Loads from an input stream.

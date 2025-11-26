@@ -246,7 +246,7 @@ public class UIFrame extends JFrame {
 
         // Add viewer mode dropdown
         menuBar.add(Box.createHorizontalStrut(10));
-        menuBar.add(new JLabel("Mode:"));
+        menuBar.add(new JLabel("Viewer mode:"));
         menuBar.add(Box.createHorizontalStrut(5));
         viewerModeComboBox = new JComboBox<>(ViewerMode.values());
         viewerModeComboBox.setSelectedItem(currentViewerMode);
@@ -507,15 +507,19 @@ public class UIFrame extends JFrame {
 
         // Bind the arrow keys to actions
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "upAction");
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("W"), "upAction");
         component.getActionMap().put("upAction", upAction);
 
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "downAction");
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("S"), "downAction");
         component.getActionMap().put("downAction", downAction);
 
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "leftAction");
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("A"), "leftAction");
         component.getActionMap().put("leftAction", leftAction);
 
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "rightAction");
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("D"), "rightAction");
         component.getActionMap().put("rightAction", rightAction);
 
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("0"), "zeroAction");

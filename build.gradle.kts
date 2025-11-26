@@ -55,4 +55,7 @@ tasks {
         archiveClassifier.set("shaded")
         isZip64 = true
     }
+    test {
+        useJUnitPlatform()
+    }
 }

@@ -1,10 +1,8 @@
 package osrs.dev.tiletypemap.roaring;
 
 import org.roaringbitmap.RoaringBitmap;
-import osrs.dev.dumper.ConfigurableCoordPacker;
-import osrs.dev.dumper.ICoordPacker;
+import osrs.dev.dumper.ICoordIndexer;
 import osrs.dev.tiletypemap.ITileTypeMapWriter;
-import osrs.dev.tiletypemap.TileType;
 import osrs.dev.tiletypemap.sparse.SparseBitSetTileTypeMap;
 
 import java.io.DataOutputStream;
@@ -24,13 +22,10 @@ public class RoaringTileTypeMapWriter implements ITileTypeMapWriter {
     }
 
     @Override
-    public synchronized void setTileType(int x, int y, int plane, byte type) {
-        int packed = RoaringTileTypeMap.packing.pack(x, y, plane);
-        if ((type & 0b0001) != 0) bitmap.add(packed | RoaringTileTypeMap.TILE_TYPE_BIT_0);
-        if ((type & 0b0010) != 0) bitmap.add(packed | RoaringTileTypeMap.TILE_TYPE_BIT_1);
-        if ((type & 0b0100) != 0) bitmap.add(packed | RoaringTileTypeMap.TILE_TYPE_BIT_2);
-        if ((type & 0b1000) != 0) bitmap.add(packed | RoaringTileTypeMap.TILE_TYPE_BIT_3);
+    public synchronized void setDataBit(int x, int y, int plane, int dataBitIndex) {
+        bitmap.add(RoaringTileTypeMap.INDEXER.packToBitmapIndex(x, y, plane, dataBitIndex));
     }
+
 
     @Override
     public void save(String filePath) throws IOException {

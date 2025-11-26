@@ -1,25 +1,16 @@
 package osrs.dev.tiletypemap.roaring;
 
 import org.roaringbitmap.RoaringBitmap;
-import osrs.dev.dumper.ConfigurableCoordPacker;
-import osrs.dev.dumper.ICoordPacker;
+import osrs.dev.dumper.ConfigurableCoordIndexer;
+import osrs.dev.dumper.ICoordIndexer;
 import osrs.dev.tiletypemap.ITileTypeMap;
-import osrs.dev.tiletypemap.TileType;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-/**
- * RoaringBitmap-based tile type map with 4-bit type encoding.
- * Uses bits 28-31 to encode type values 0-15.
- */
 public class RoaringTileTypeMap implements ITileTypeMap {
-    public static final int TILE_TYPE_BIT_0 = 1 << 28;
-    public static final int TILE_TYPE_BIT_1 = 1 << 29;
-    public static final int TILE_TYPE_BIT_2 = 1 << 30;
-    public static final int TILE_TYPE_BIT_3 = 1 << 31;
-    public static final ICoordPacker packing = ConfigurableCoordPacker.COMPACT_13BIT_PACKING;
+    static final ICoordIndexer INDEXER = ConfigurableCoordIndexer.ROARINGBITMAP_4BIT_DATA_COORD_INDEXER;
 
     private final RoaringBitmap bitmap;
 
@@ -28,14 +19,13 @@ public class RoaringTileTypeMap implements ITileTypeMap {
     }
 
     @Override
-    public byte getTileType(int x, int y, int plane) {
-        int packed = packing.pack(x, y, plane);
-        byte type = 0;
-        if (bitmap.contains(packed | TILE_TYPE_BIT_0)) type |= 0b0001;
-        if (bitmap.contains(packed | TILE_TYPE_BIT_1)) type |= 0b0010;
-        if (bitmap.contains(packed | TILE_TYPE_BIT_2)) type |= 0b0100;
-        if (bitmap.contains(packed | TILE_TYPE_BIT_3)) type |= 0b1000;
-        return type;
+    public ICoordIndexer getIndexer() {
+        return INDEXER;
+    }
+
+    public boolean isDataBitSet(int x, int y, int plane, int dataBitIndex) {
+        int bitIndex = INDEXER.packToBitmapIndex(x, y, plane, dataBitIndex);
+        return bitmap.contains(bitIndex);
     }
 
     /**
