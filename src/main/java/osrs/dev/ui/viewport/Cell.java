@@ -2,7 +2,7 @@ package osrs.dev.ui.viewport;
 
 import lombok.Data;
 import osrs.dev.Main;
-import osrs.dev.reader.Flags;
+import osrs.dev.collisionmap.Flags;
 
 import java.awt.*;
 import java.util.ArrayList;

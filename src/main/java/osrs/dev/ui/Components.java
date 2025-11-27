@@ -35,7 +35,7 @@ public class Components
 
     public static JSlider createSpeedSlider()
     {
-        JSlider speedSlider = new JSlider(JSlider.HORIZONTAL, 0, 300, 5);
+        JSlider speedSlider = new JSlider(JSlider.HORIZONTAL, 0, 300, 15);
         speedSlider.setMajorTickSpacing(15);
         speedSlider.setPaintTicks(true);
         speedSlider.setPaintLabels(true);

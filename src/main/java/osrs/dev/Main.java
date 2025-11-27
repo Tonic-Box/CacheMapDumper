@@ -2,22 +2,28 @@ package osrs.dev;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import osrs.dev.collisionmap.CollisionMap;
+import osrs.dev.collisionmap.CollisionMapFactory;
 import osrs.dev.dumper.Dumper;
-import osrs.dev.reader.CollisionMap;
+import osrs.dev.tiletypemap.TileTypeMap;
+import osrs.dev.tiletypemap.TileTypeMapFactory;
 import osrs.dev.ui.UIFrame;
 import osrs.dev.util.ConfigManager;
 import osrs.dev.util.ThreadPool;
 import javax.swing.*;
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Launches the collision map viewer
  */
+@Slf4j
 public class Main
 {
     @Getter
     private static CollisionMap collision;
+    @Getter
+    private static TileTypeMap tileTypeMap;
     @Getter
     private static ConfigManager configManager;
     private static UIFrame frame;
@@ -29,6 +35,7 @@ public class Main
      */
     public static void main(String[] args) throws Exception
     {
+        log.info("Starting CacheMapDumper");
         FlatDarkLaf.setup();
         load();
         SwingUtilities.invokeLater(() -> {
@@ -47,16 +54,41 @@ public class Main
     }
 
     /**
-     * Load the collision map
-     * @throws IOException if an error occurs
-     * @throws ClassNotFoundException if an error occurs
+     * Load the collision map and tile type map
+     * @throws Exception if an error occurs loading the maps
      */
-    public static void load() throws IOException, ClassNotFoundException {
+    public static void load() throws Exception {
         configManager = new ConfigManager();
-        Dumper.OUTPUT_MAP = new File(configManager.outputPath());
+        String format = configManager.format();
+
+        // Load collision map
+        String collisionMapPath = configManager.getCollisionMapPath(format);
+        Dumper.OUTPUT_MAP = new File(collisionMapPath);
+        log.info("Looking for collision map at: {}", Dumper.OUTPUT_MAP.getPath());
         if(Dumper.OUTPUT_MAP.exists())
         {
-            collision = CollisionMap.load(Dumper.OUTPUT_MAP.getPath());
+            log.info("Loading existing collision map");
+            collision = CollisionMapFactory.load(Dumper.OUTPUT_MAP.getPath());
+            log.info("Collision map loaded successfully");
+        }
+        else
+        {
+            log.warn("No collision map found - viewer will start empty");
+        }
+
+        // Load tile type map
+        String tileTypeMapPath = configManager.getTileTypeMapPath(format);
+        Dumper.OUTPUT_TILE_TYPES = new File(tileTypeMapPath);
+        log.info("Looking for tile type map at: {}", Dumper.OUTPUT_TILE_TYPES.getPath());
+        if(Dumper.OUTPUT_TILE_TYPES.exists())
+        {
+            log.info("Loading existing tile type map");
+            tileTypeMap = TileTypeMapFactory.load(Dumper.OUTPUT_TILE_TYPES.getPath());
+            log.info("Tile type map loaded successfully");
+        }
+        else
+        {
+            log.warn("No tile type map found");
         }
     }
 }

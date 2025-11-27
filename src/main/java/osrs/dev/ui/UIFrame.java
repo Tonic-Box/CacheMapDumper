@@ -24,17 +24,24 @@ public class UIFrame extends JFrame {
     private final JButton upButton;
     private JTextField pathField;
     private JCheckBox downloadCacheCheckBox;
+    private JComboBox<String> formatComboBox;
     private final ViewPort viewPort;
     private final WorldPoint base = new WorldPoint(3207, 3213, 0);
     private final WorldPoint center = new WorldPoint(0,0,0);
     private Future<?> current;
     private SettingsFrame settingsFrame;
     private JTextField worldPointField;
+    private JComboBox<ViewerMode> viewerModeComboBox;
+    private ViewerMode currentViewerMode;
 
     /**
      * Creates a new UI frame for the Collision Viewer.
      */
     public UIFrame() {
+        // Initialize viewer mode from config
+        String savedMode = Main.getConfigManager().viewerMode();
+        currentViewerMode = ViewerMode.fromDisplayName(savedMode);
+
         setIconImage(ImageUtil.loadImageResource(UIFrame.class, "icon.png"));
         setTitle("Collision Viewer");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -237,6 +244,20 @@ public class UIFrame extends JFrame {
 
         menuBar.add(worldPointField);
 
+        // Add viewer mode dropdown
+        menuBar.add(Box.createHorizontalStrut(10));
+        menuBar.add(new JLabel("Viewer mode:"));
+        menuBar.add(Box.createHorizontalStrut(5));
+        viewerModeComboBox = new JComboBox<>(ViewerMode.values());
+        viewerModeComboBox.setSelectedItem(currentViewerMode);
+        viewerModeComboBox.setMaximumSize(new Dimension(100, 25));
+        viewerModeComboBox.addActionListener(e -> {
+            currentViewerMode = (ViewerMode) viewerModeComboBox.getSelectedItem();
+            Main.getConfigManager().setViewerMode(currentViewerMode.getDisplayName());
+            update();
+        });
+        menuBar.add(viewerModeComboBox);
+
         // Set the menu bar for the JFrame
         setJMenuBar(menuBar);
     }
@@ -247,15 +268,15 @@ public class UIFrame extends JFrame {
      */
     private JPanel createUpdatePanel() {
         JPanel updatePanel = new JPanel(new BorderLayout());
-        updatePanel.setBorder(BorderFactory.createTitledBorder("Update Collision"));
+        updatePanel.setBorder(BorderFactory.createTitledBorder("Update Dumps"));
 
         // Create a panel for input fields
-        JPanel inputPanel = new JPanel(new GridLayout(3, 1));
+        JPanel inputPanel = new JPanel(new GridLayout(5, 1));
 
-        // Add a label and text field for collision map path
-        JLabel pathLabel = new JLabel("Collision Map Path:");
+        // Add a label and text field for output directory
+        JLabel pathLabel = new JLabel("Output Directory:");
         pathField = new JTextField();
-        pathField.setText(Main.getConfigManager().outputPath());
+        pathField.setText(Main.getConfigManager().outputDir());
         inputPanel.add(pathLabel);
         inputPanel.add(pathField);
 
@@ -266,6 +287,14 @@ public class UIFrame extends JFrame {
         downloadCacheCheckBox.setSelected(Main.getConfigManager().freshCache());
         downloadCacheCheckBox.addItemListener(e -> Main.getConfigManager().setFreshCache(downloadCacheCheckBox.isSelected()));
         inputPanel.add(downloadCacheCheckBox);
+
+        // Add format selection combo box
+        JLabel formatLabel = new JLabel("Serialization Format:");
+        formatComboBox = new JComboBox<>(new String[]{"RoaringBitmap", "SparseBitSet"});
+        formatComboBox.setSelectedItem(Main.getConfigManager().format());
+        formatComboBox.addActionListener(e -> Main.getConfigManager().setFormat((String) formatComboBox.getSelectedItem()));
+        inputPanel.add(formatLabel);
+        inputPanel.add(formatComboBox);
 
         // Add the Update Collision button at the bottom
         updatePanel.add(getUpdateButton(), BorderLayout.SOUTH);
@@ -285,7 +314,7 @@ public class UIFrame extends JFrame {
      * @return The update button.
      */
     private JButton getUpdateButton() {
-        JButton updateCollision = new JButton("Update Collision");
+        JButton updateCollision = new JButton("Update Dumps");
         updateCollision.addActionListener(e -> {
             SwingUtilities.invokeLater(() -> {
                 updateCollision.setText("Updating...");
@@ -294,13 +323,16 @@ public class UIFrame extends JFrame {
                 repaint();
             });
 
-            Main.getConfigManager().setOutputPath(pathField.getText());
+            Main.getConfigManager().setOutputDir(pathField.getText());
+            String selectedFormat = (String) formatComboBox.getSelectedItem();
 
             List<String> options = new ArrayList<>();
-            options.add("-path");
+            options.add("-dir");
             options.add(pathField.getText());
             options.add("-fresh");
             options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
+            options.add("-format");
+            options.add(selectedFormat);
 
             ThreadPool.submit(() -> {
                 try
@@ -313,7 +345,7 @@ public class UIFrame extends JFrame {
                     ex.printStackTrace();
                 }
                 SwingUtilities.invokeLater(() -> {
-                    updateCollision.setText("Update Collision");
+                    updateCollision.setText("Update Dumps");
                     updateCollision.setEnabled(true);
                     revalidate();
                     repaint();
@@ -329,8 +361,13 @@ public class UIFrame extends JFrame {
      * Updates the collision map.
      */
     public void update() {
-        if(Main.getCollision() == null)
+        // Check if the appropriate data is available for the current viewer mode
+        if (currentViewerMode == ViewerMode.COLLISION && Main.getCollision() == null) {
             return;
+        }
+        if (currentViewerMode == ViewerMode.TILE_TYPE && Main.getTileTypeMap() == null) {
+            return;
+        }
 
         if(busy())
             return;
@@ -338,7 +375,7 @@ public class UIFrame extends JFrame {
         worldPointField.setText(center.getX() + "," + center.getY() + "," + center.getPlane());
 
         current = ThreadPool.submit(() -> {
-            viewPort.render(base, mapView.getWidth(), mapView.getHeight(), zoomSlider.getValue());
+            viewPort.render(base, mapView.getWidth(), mapView.getHeight(), zoomSlider.getValue(), currentViewerMode);
             ImageIcon imageIcon = new ImageIcon(viewPort.getCanvas());
             mapView.setIcon(imageIcon);
         });
@@ -470,15 +507,19 @@ public class UIFrame extends JFrame {
 
         // Bind the arrow keys to actions
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "upAction");
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("W"), "upAction");
         component.getActionMap().put("upAction", upAction);
 
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "downAction");
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("S"), "downAction");
         component.getActionMap().put("downAction", downAction);
 
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "leftAction");
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("A"), "leftAction");
         component.getActionMap().put("leftAction", leftAction);
 
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "rightAction");
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("D"), "rightAction");
         component.getActionMap().put("rightAction", rightAction);
 
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("0"), "zeroAction");

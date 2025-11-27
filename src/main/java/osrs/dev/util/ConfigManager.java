@@ -18,15 +18,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ConfigManager
 {
     @Getter
-    private final File configFile = new File(System.getProperty("user.home") + "/VitaX/collision/config.cfg");
+    private final File configFile = new File(System.getProperty("user.home") + "/VitaX/cachedumper/config.cfg");
     private FileBasedConfigurationBuilder<FileBasedConfiguration> builder;
 
     public ConfigManager()
     {
         loadConfigFromFile();
         var map = new HashMap<String, Object>();
-        map.put("output", System.getProperty("user.home") + "/VitaX/map.dat");
+        map.put("output_dir", System.getProperty("user.home") + "/VitaX/");
         map.put("fresh_cache", true);
+        map.put("format", "RoaringBitmap");
+        map.put("viewer_mode", "Collision");
         map.put("bg_color", "#F8F8F8");
         map.put("grid_color", "#00FFFF");
         map.put("collision_color", "#FF0000");
@@ -34,12 +36,54 @@ public class ConfigManager
         ensure(map);
     }
 
-    public String outputPath() {
-        return getString("output");
+    public String outputDir() {
+        return getString("output_dir");
+    }
+
+    /**
+     * Constructs the collision map file path based on output directory and format.
+     * @param format "RoaringBitmap" or "SparseBitSet"
+     * @return the full file path
+     */
+    public String getCollisionMapPath(String format) {
+        String dir = outputDir();
+        if (!dir.endsWith("/") && !dir.endsWith("\\")) {
+            dir += "/";
+        }
+        if ("SparseBitSet".equalsIgnoreCase(format)) {
+            return dir + "map_sparse.dat.gz";
+        } else {
+            return dir + "map_roaring.dat.gz";
+        }
+    }
+
+    /**
+     * Constructs the tile type map file path based on output directory and format.
+     * @param format "RoaringBitmap" or "SparseBitSet"
+     * @return the full file path
+     */
+    public String getTileTypeMapPath(String format) {
+        String dir = outputDir();
+        if (!dir.endsWith("/") && !dir.endsWith("\\")) {
+            dir += "/";
+        }
+        if ("SparseBitSet".equalsIgnoreCase(format)) {
+            return dir + "tile_types_sparse.dat.gz";
+        } else {
+            return dir + "tile_types_roaring.dat.gz";
+        }
     }
 
     public boolean freshCache() {
         return getBoolean("fresh_cache");
+    }
+
+    public String format() {
+        return getString("format");
+    }
+
+    public String viewerMode() {
+        return getString("viewer_mode");
     }
 
     public Color bgColor() {
@@ -74,12 +118,20 @@ public class ConfigManager
         return getString("wall_color");
     }
 
-    public void setOutputPath(String path) {
-        setProperty("output", path);
+    public void setOutputDir(String dir) {
+        setProperty("output_dir", dir);
     }
 
     public void setFreshCache(boolean fresh) {
         setProperty("fresh_cache", fresh);
+    }
+
+    public void setFormat(String format) {
+        setProperty("format", format);
+    }
+
+    public void setViewerMode(String viewerMode) {
+        setProperty("viewer_mode", viewerMode);
     }
 
     public void setBgColor(String colorHex) {
@@ -199,13 +251,10 @@ public class ConfigManager
      */
     private void ensure(Map<String,Object> configMap)
     {
-        AtomicBoolean requiredChange = new AtomicBoolean(false);
         configMap.forEach((key, value) -> {
             if (getProperty(key) == null) {
                 addProperty(key, value);
-                requiredChange.set(true);
             }
         });
-        requiredChange.get();
     }
 }
