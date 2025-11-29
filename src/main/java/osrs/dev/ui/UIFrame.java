@@ -24,6 +24,7 @@ public class UIFrame extends JFrame {
     private final JButton upButton;
     private JTextField pathField;
     private JTextField objectPathField;
+    private JTextField tileTypePathField;
     private JCheckBox downloadCacheCheckBox;
     private final ViewPort viewPort;
     private final WorldPoint base = new WorldPoint(3207, 3213, 0);
@@ -31,6 +32,8 @@ public class UIFrame extends JFrame {
     private Future<?> current;
     private SettingsFrame settingsFrame;
     private JTextField worldPointField;
+    private JComboBox<ViewerMode> viewerModeComboBox;
+    private ViewerMode currentViewerMode = ViewerMode.COLLISION;
 
     /**
      * Creates a new UI frame for the Collision Viewer.
@@ -143,10 +146,11 @@ public class UIFrame extends JFrame {
         speedSlider = createSpeedSlider();
         add(speedSlider, BorderLayout.NORTH);
 
-        // Create a panel to hold both update panels
-        JPanel bottomPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        // Create a panel to hold all update panels
+        JPanel bottomPanel = new JPanel(new GridLayout(3, 1, 5, 5));
         bottomPanel.add(createUpdatePanel());
         bottomPanel.add(createObjectUpdatePanel());
+        bottomPanel.add(createTileTypeUpdatePanel());
         add(bottomPanel, BorderLayout.SOUTH);
 
         calculateCenter();
@@ -268,6 +272,19 @@ public class UIFrame extends JFrame {
 
         menuBar.add(worldPointField);
 
+        // Add viewer mode dropdown
+        menuBar.add(Box.createHorizontalStrut(10));
+        menuBar.add(new JLabel("View:"));
+        menuBar.add(Box.createHorizontalStrut(5));
+        viewerModeComboBox = new JComboBox<>(ViewerMode.values());
+        viewerModeComboBox.setSelectedItem(currentViewerMode);
+        viewerModeComboBox.setMaximumSize(new Dimension(100, 25));
+        viewerModeComboBox.addActionListener(e -> {
+            currentViewerMode = (ViewerMode) viewerModeComboBox.getSelectedItem();
+            update();
+        });
+        menuBar.add(viewerModeComboBox);
+
         // Set the menu bar for the JFrame
         setJMenuBar(menuBar);
     }
@@ -332,6 +349,8 @@ public class UIFrame extends JFrame {
             options.add(pathField.getText());
             options.add("-objectPath");
             options.add(objectPathField.getText());
+            options.add("-tileTypePath");
+            options.add(tileTypePathField.getText());
             options.add("-fresh");
             options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
 
@@ -405,6 +424,8 @@ public class UIFrame extends JFrame {
             options.add(pathField.getText());
             options.add("-objectPath");
             options.add(objectPathField.getText());
+            options.add("-tileTypePath");
+            options.add(tileTypePathField.getText());
             options.add("-fresh");
             options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
 
@@ -432,11 +453,91 @@ public class UIFrame extends JFrame {
     }
 
     /**
-     * Updates the collision map.
+     * Creates the update panel for updating the tile type map.
+     * @return The tile type update panel.
+     */
+    private JPanel createTileTypeUpdatePanel() {
+        JPanel updatePanel = new JPanel(new BorderLayout());
+        updatePanel.setBorder(BorderFactory.createTitledBorder("Update Tile Type Map"));
+
+        // Create a panel for input field
+        JPanel inputPanel = new JPanel(new GridLayout(2, 1));
+
+        // Add a label and text field for tile type map path
+        JLabel pathLabel = new JLabel("Tile Type Map Path:");
+        tileTypePathField = new JTextField();
+        tileTypePathField.setText(Main.getConfigManager().tileTypeOutputPath());
+        inputPanel.add(pathLabel);
+        inputPanel.add(tileTypePathField);
+
+        // Add input panel to the main update panel
+        updatePanel.add(inputPanel, BorderLayout.CENTER);
+
+        // Add the Update Tile Type Map button at the bottom
+        updatePanel.add(getUpdateTileTypeButton(), BorderLayout.SOUTH);
+        return updatePanel;
+    }
+
+    /**
+     * Creates the update button for updating the tile type map.
+     * @return The update tile type button.
+     */
+    private JButton getUpdateTileTypeButton() {
+        JButton updateTileTypes = new JButton("Update Tile Type Map");
+        updateTileTypes.addActionListener(e -> {
+            SwingUtilities.invokeLater(() -> {
+                updateTileTypes.setText("Updating...");
+                updateTileTypes.setEnabled(false);
+                revalidate();
+                repaint();
+            });
+
+            Main.getConfigManager().setTileTypeOutputPath(tileTypePathField.getText());
+
+            List<String> options = new ArrayList<>();
+            options.add("-path");
+            options.add(pathField.getText());
+            options.add("-objectPath");
+            options.add(objectPathField.getText());
+            options.add("-tileTypePath");
+            options.add(tileTypePathField.getText());
+            options.add("-fresh");
+            options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
+
+            ThreadPool.submit(() -> {
+                try
+                {
+                    Dumper.main(options.toArray(new String[0]));
+                    Main.load();
+                }
+                catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+                SwingUtilities.invokeLater(() -> {
+                    updateTileTypes.setText("Update Tile Type Map");
+                    updateTileTypes.setEnabled(true);
+                    revalidate();
+                    repaint();
+                    update();
+                });
+            });
+
+        });
+        return updateTileTypes;
+    }
+
+    /**
+     * Updates the map view based on the current viewer mode.
      */
     public void update() {
-        if(Main.getCollision() == null)
+        // Check if the appropriate data is available for the current viewer mode
+        if (currentViewerMode == ViewerMode.COLLISION && Main.getCollision() == null) {
             return;
+        }
+        if (currentViewerMode == ViewerMode.TILE_TYPE && Main.getTileTypeMap() == null) {
+            return;
+        }
 
         if(busy())
             return;
@@ -444,7 +545,7 @@ public class UIFrame extends JFrame {
         worldPointField.setText(center.getX() + "," + center.getY() + "," + center.getPlane());
 
         current = ThreadPool.submit(() -> {
-            viewPort.render(base, mapView.getWidth(), mapView.getHeight(), zoomSlider.getValue());
+            viewPort.render(base, mapView.getWidth(), mapView.getHeight(), zoomSlider.getValue(), currentViewerMode);
             ImageIcon imageIcon = new ImageIcon(viewPort.getCanvas());
             mapView.setIcon(imageIcon);
         });

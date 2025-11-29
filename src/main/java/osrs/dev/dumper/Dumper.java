@@ -4,8 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
 import net.runelite.cache.ObjectManager;
+import net.runelite.cache.OverlayManager;
 import net.runelite.cache.definitions.ObjectDefinition;
+import net.runelite.cache.definitions.OverlayDefinition;
 import net.runelite.cache.fs.Store;
+import osrs.dev.reader.TileType;
 import net.runelite.cache.region.Location;
 import net.runelite.cache.region.Position;
 import net.runelite.cache.region.Region;
@@ -39,14 +42,17 @@ public class Dumper
 {
     public static File OUTPUT_MAP = new File(System.getProperty("user.home") + "/VitaX/collision/map.dat");
     public static File OUTPUT_OBJECT_MAP = new File(System.getProperty("user.home") + "/VitaX/objects.dat");
+    public static File OUTPUT_TILE_TYPE_MAP = new File(System.getProperty("user.home") + "/VitaX/tile_types.dat");
     public static final String COLLISION_DIR = System.getProperty("user.home") + "/VitaX/collision/";
     public static final String CACHE_DIR = COLLISION_DIR + "/cache/";
     public static final String XTEA_DIR = COLLISION_DIR + "/keys/";
     private final RegionLoader regionLoader;
     private final ObjectManager objectManager;
+    private final OverlayManager overlayManager;
     private final CollisionMapWriter collisionMapWriter;
     private final ObjectMapWriter objectMapWriter;
     private final ObjectMapWriterCompressed objectMapWriterCompressed;
+    private final TileTypeMapWriter tileTypeMapWriter;
 
     private static OptionsParser optionsParser;
 
@@ -60,10 +66,13 @@ public class Dumper
     {
         this.regionLoader = new RegionLoader(store, keyProvider);
         this.objectManager = new ObjectManager(store);
+        this.overlayManager = new OverlayManager(store);
         this.collisionMapWriter = new CollisionMapWriter();
         this.objectMapWriter = new ObjectMapWriter();
         this.objectMapWriterCompressed = new ObjectMapWriterCompressed();
+        this.tileTypeMapWriter = new TileTypeMapWriter();
         objectManager.load();
+        overlayManager.load();
         regionLoader.loadRegions();
         regionLoader.calculateBounds();
     }
@@ -90,6 +99,7 @@ public class Dumper
         optionsParser = new OptionsParser(args);
         OUTPUT_MAP = new File(optionsParser.getPath());
         OUTPUT_OBJECT_MAP = new File(optionsParser.getObjectPath());
+        OUTPUT_TILE_TYPE_MAP = new File(optionsParser.getTileTypePath());
         ensureDirectory(COLLISION_DIR);
         ensureDirectory(XTEA_DIR);
         if(optionsParser.isFreshCache() || isDirectoryEmpty(new File(CACHE_DIR)) || !(new File(CACHE_DIR)).exists())
@@ -155,6 +165,10 @@ public class Dumper
             String compressedPath = OUTPUT_OBJECT_MAP.getPath();
             dumper.objectMapWriterCompressed.save(compressedPath);
             System.out.println("Wrote compressed object map to " + compressedPath);
+
+            // Save tile type map
+            dumper.tileTypeMapWriter.save(OUTPUT_TILE_TYPE_MAP.getPath());
+            System.out.println("Wrote tile type map to " + OUTPUT_TILE_TYPE_MAP);
         }
         catch (ExecutionException | InterruptedException e)
         {
@@ -321,8 +335,37 @@ public class Dumper
                     {
                         collisionMapWriter.fullBlocking((short) regionX, (short) regionY, (byte) z, true);
                     }
+
+                    // Process tile types (water types, etc.)
+                    processTileTypesOfRegionCoordinate(region, localX, localY, z, regionX, regionY);
                 }
             }
+        }
+    }
+
+    /**
+     * Processes tile types for a single coordinate.
+     * Extracts water type information from overlay definitions.
+     */
+    private void processTileTypesOfRegionCoordinate(Region region, int localX, int localY, int plane, int regionX, int regionY) {
+        boolean isBridge = (region.getTileSetting(1, localX, localY) & 2) != 0;
+        int tileZ = plane + (isBridge ? 1 : 0);
+        int effectivePlane = plane < 3 ? tileZ : plane;
+
+        int overlayId = region.getOverlayId(effectivePlane, localX, localY);
+        if (overlayId <= 0) {
+            return;
+        }
+
+        OverlayDefinition overlayDef = overlayManager.provide(overlayId - 1);  // -1 offset!
+        if (overlayDef == null) {
+            return;
+        }
+
+        int textureId = overlayDef.getTexture();
+        Byte tileType = TileType.SPRITE_ID_TO_TILE_TYPE.get(textureId);
+        if (tileType != null && tileType > 0) {
+            tileTypeMapWriter.setTileType(regionX, regionY, plane, tileType);
         }
     }
 

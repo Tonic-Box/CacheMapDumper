@@ -13,6 +13,7 @@ public class OptionsParser
 {
     private String path = System.getProperty("user.home") + "/VitaX/collision/map.dat";
     private String objectPath = System.getProperty("user.home") + "/VitaX/objects.dat";
+    private String tileTypePath = System.getProperty("user.home") + "/VitaX/tile_types.dat";
     private boolean freshCache = true;
     public OptionsParser(String[] args) {
         for(int i = 0; i < args.length; ++i) {
@@ -22,6 +23,9 @@ public class OptionsParser
                     break;
                 case "-objectPath":
                     objectPath = args[++i];
+                    break;
+                case "-tileTypePath":
+                    tileTypePath = args[++i];
                     break;
                 case "-fresh":
                     freshCache = args[++i].toLowerCase().startsWith("y");

@@ -1,7 +1,10 @@
 package osrs.dev.ui.viewport;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import osrs.dev.Main;
+import osrs.dev.reader.TileType;
+import osrs.dev.ui.ViewerMode;
 import osrs.dev.util.WorldPoint;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -19,6 +22,27 @@ public class ViewPort
     private int displayPlane;
     private int lastWidth = 0;
     private int lastHeight = 0;
+    private ViewerMode viewerMode = ViewerMode.COLLISION;
+
+    /**
+     * Immutable map of tile types to their rendering colors.
+     */
+    private static final ImmutableMap<Byte, Color> TILE_TYPE_COLORS = ImmutableMap.<Byte, Color>builder()
+            .put(TileType.WATER, new Color(0, 100, 200))                   // Blue
+            .put(TileType.CRANDOR_SMEGMA_WATER, new Color(100, 150, 100))  // Greenish
+            .put(TileType.TEMPOR_STORM_WATER, new Color(80, 80, 150))      // Dark blue
+            .put(TileType.DISEASE_WATER, new Color(100, 180, 80))          // Sickly green
+            .put(TileType.KELP_WATER, new Color(0, 150, 100))              // Teal
+            .put(TileType.SUNBAKED_WATER, new Color(200, 180, 100))        // Sandy
+            .put(TileType.JAGGED_REEFS_WATER, new Color(100, 80, 80))      // Brown
+            .put(TileType.SHARP_CRYSTAL_WATER, new Color(180, 100, 200))   // Purple
+            .put(TileType.ICE_WATER, new Color(150, 200, 220))             // Light blue/cyan
+            .put(TileType.NE_PURPLE_GRAY_WATER, new Color(140, 120, 160))  // Purple-gray
+            .put(TileType.NW_GRAY_WATER, new Color(120, 120, 130))         // Gray-blue
+            .put(TileType.SE_PURPLE_WATER, new Color(160, 100, 180))       // Purple
+            .build();
+
+    private static final Color DEFAULT_TILE_TYPE_COLOR = new Color(150, 150, 150);  // Unknown - Gray
 
 
     /**
@@ -37,14 +61,16 @@ public class ViewPort
      * @param width The width of the screen.
      * @param height The height of the screen.
      * @param cellDim The dimension of the cells.
+     * @param viewerMode The viewer mode (Collision or TileType).
      */
-    public void render(WorldPoint base, int width, int height, int cellDim)
+    public void render(WorldPoint base, int width, int height, int cellDim, ViewerMode viewerMode)
     {
 
         try
         {
             this.base = base;
             this.cellDim = cellDim;
+            this.viewerMode = viewerMode;
             if(lastWidth != width || lastHeight != height)
             {
                 lastWidth = width;
@@ -52,10 +78,9 @@ public class ViewPort
                 this.canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             }
 
-            Cell[][] cells = buildCells();
             Graphics2D g2d = canvas.createGraphics();
 
-            // Set the background color to white
+            // Set the background color
             g2d.setColor(Main.getConfigManager().bgColor());
             g2d.fillRect(0, 0, width, height);
 
@@ -71,15 +96,60 @@ public class ViewPort
                 }
             }
 
-            for(Cell[] row : cells)
-            {
-                for(Cell cell : row)
-                {
-                    cell.render(g2d, cellDim, width, height);
-                }
+            if (viewerMode == ViewerMode.COLLISION) {
+                renderCollisionMode(g2d, width, height);
+            } else if (viewerMode == ViewerMode.TILE_TYPE) {
+                renderTileTypeMode(g2d, width, height);
             }
         }
         catch(Exception ignored) {
+        }
+    }
+
+    /**
+     * Renders collision data.
+     */
+    private void renderCollisionMode(Graphics2D g2d, int width, int height) {
+        if (Main.getCollision() == null) return;
+
+        Cell[][] cells = buildCells();
+        for(Cell[] row : cells)
+        {
+            for(Cell cell : row)
+            {
+                cell.render(g2d, cellDim, width, height);
+            }
+        }
+    }
+
+    /**
+     * Renders tile type data with color-coded tiles.
+     */
+    private void renderTileTypeMode(Graphics2D g2d, int width, int height) {
+        if (Main.getTileTypeMap() == null) return;
+
+        if(lastPlane != base.getPlane())
+        {
+            lastPlane = base.getPlane();
+            displayPlane = base.getPlane();
+        }
+
+        float cellWidth = (float) width / cellDim;
+        float cellHeight = (float) height / cellDim;
+
+        for(int x = 0; x < cellDim; x++)
+        {
+            for(int y = 0; y < cellDim; y++)
+            {
+                byte tileType = Main.getTileTypeMap().getTileType(base.getX() + x, base.getY() + y, displayPlane);
+                if (tileType > 0) {
+                    Color color = TILE_TYPE_COLORS.getOrDefault(tileType, DEFAULT_TILE_TYPE_COLOR);
+                    g2d.setColor(color);
+                    int screenX = Math.round(x * cellWidth);
+                    int screenY = height - Math.round((y + 1) * cellHeight);
+                    g2d.fillRect(screenX, screenY, Math.round(cellWidth) + 1, Math.round(cellHeight) + 1);
+                }
+            }
         }
     }
 

@@ -27,6 +27,7 @@ public class ConfigManager
         var map = new HashMap<String, Object>();
         map.put("output", System.getProperty("user.home") + "/VitaX/map.dat");
         map.put("object_output", System.getProperty("user.home") + "/VitaX/objects.dat");
+        map.put("tile_type_output", System.getProperty("user.home") + "/VitaX/tile_types.dat");
         map.put("fresh_cache", true);
         map.put("bg_color", "#F8F8F8");
         map.put("grid_color", "#00FFFF");
@@ -41,6 +42,10 @@ public class ConfigManager
 
     public String objectOutputPath() {
         return getString("object_output");
+    }
+
+    public String tileTypeOutputPath() {
+        return getString("tile_type_output");
     }
 
     public boolean freshCache() {
@@ -85,6 +90,10 @@ public class ConfigManager
 
     public void setObjectOutputPath(String path) {
         setProperty("object_output", path);
+    }
+
+    public void setTileTypeOutputPath(String path) {
+        setProperty("tile_type_output", path);
     }
 
     public void setFreshCache(boolean fresh) {
