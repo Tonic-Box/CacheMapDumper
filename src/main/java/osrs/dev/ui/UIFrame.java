@@ -23,6 +23,7 @@ public class UIFrame extends JFrame {
     private final JSlider speedSlider;
     private final JButton upButton;
     private JTextField pathField;
+    private JTextField objectPathField;
     private JCheckBox downloadCacheCheckBox;
     private final ViewPort viewPort;
     private final WorldPoint base = new WorldPoint(3207, 3213, 0);
@@ -142,7 +143,11 @@ public class UIFrame extends JFrame {
         speedSlider = createSpeedSlider();
         add(speedSlider, BorderLayout.NORTH);
 
-        add(createUpdatePanel(), BorderLayout.SOUTH);
+        // Create a panel to hold both update panels
+        JPanel bottomPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        bottomPanel.add(createUpdatePanel());
+        bottomPanel.add(createObjectUpdatePanel());
+        add(bottomPanel, BorderLayout.SOUTH);
 
         calculateCenter();
         setupKeyBindings(imagePanel);
@@ -325,6 +330,8 @@ public class UIFrame extends JFrame {
             List<String> options = new ArrayList<>();
             options.add("-path");
             options.add(pathField.getText());
+            options.add("-objectPath");
+            options.add(objectPathField.getText());
             options.add("-fresh");
             options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
 
@@ -349,6 +356,79 @@ public class UIFrame extends JFrame {
 
         });
         return updateCollision;
+    }
+
+    /**
+     * Creates the update panel for updating the object map.
+     * @return The object update panel.
+     */
+    private JPanel createObjectUpdatePanel() {
+        JPanel updatePanel = new JPanel(new BorderLayout());
+        updatePanel.setBorder(BorderFactory.createTitledBorder("Update Object Map"));
+
+        // Create a panel for input field
+        JPanel inputPanel = new JPanel(new GridLayout(2, 1));
+
+        // Add a label and text field for object map path
+        JLabel pathLabel = new JLabel("Object Map Path:");
+        objectPathField = new JTextField();
+        objectPathField.setText(Main.getConfigManager().objectOutputPath());
+        inputPanel.add(pathLabel);
+        inputPanel.add(objectPathField);
+
+        // Add input panel to the main update panel
+        updatePanel.add(inputPanel, BorderLayout.CENTER);
+
+        // Add the Update Object Map button at the bottom
+        updatePanel.add(getUpdateObjectButton(), BorderLayout.SOUTH);
+        return updatePanel;
+    }
+
+    /**
+     * Creates the update button for updating the object map.
+     * @return The update object button.
+     */
+    private JButton getUpdateObjectButton() {
+        JButton updateObjects = new JButton("Update Object Map");
+        updateObjects.addActionListener(e -> {
+            SwingUtilities.invokeLater(() -> {
+                updateObjects.setText("Updating...");
+                updateObjects.setEnabled(false);
+                revalidate();
+                repaint();
+            });
+
+            Main.getConfigManager().setObjectOutputPath(objectPathField.getText());
+
+            List<String> options = new ArrayList<>();
+            options.add("-path");
+            options.add(pathField.getText());
+            options.add("-objectPath");
+            options.add(objectPathField.getText());
+            options.add("-fresh");
+            options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
+
+            ThreadPool.submit(() -> {
+                try
+                {
+                    Dumper.main(options.toArray(new String[0]));
+                    Main.load();
+                }
+                catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+                SwingUtilities.invokeLater(() -> {
+                    updateObjects.setText("Update Object Map");
+                    updateObjects.setEnabled(true);
+                    revalidate();
+                    repaint();
+                    update();
+                });
+            });
+
+        });
+        return updateObjects;
     }
 
     /**

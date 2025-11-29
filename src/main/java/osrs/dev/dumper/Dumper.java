@@ -38,12 +38,15 @@ import java.util.concurrent.Future;
 public class Dumper
 {
     public static File OUTPUT_MAP = new File(System.getProperty("user.home") + "/VitaX/collision/map.dat");
+    public static File OUTPUT_OBJECT_MAP = new File(System.getProperty("user.home") + "/VitaX/objects.dat");
     public static final String COLLISION_DIR = System.getProperty("user.home") + "/VitaX/collision/";
     public static final String CACHE_DIR = COLLISION_DIR + "/cache/";
     public static final String XTEA_DIR = COLLISION_DIR + "/keys/";
     private final RegionLoader regionLoader;
     private final ObjectManager objectManager;
     private final CollisionMapWriter collisionMapWriter;
+    private final ObjectMapWriter objectMapWriter;
+    private final ObjectMapWriterCompressed objectMapWriterCompressed;
 
     private static OptionsParser optionsParser;
 
@@ -58,6 +61,8 @@ public class Dumper
         this.regionLoader = new RegionLoader(store, keyProvider);
         this.objectManager = new ObjectManager(store);
         this.collisionMapWriter = new CollisionMapWriter();
+        this.objectMapWriter = new ObjectMapWriter();
+        this.objectMapWriterCompressed = new ObjectMapWriterCompressed();
         objectManager.load();
         regionLoader.loadRegions();
         regionLoader.calculateBounds();
@@ -84,6 +89,7 @@ public class Dumper
     {
         optionsParser = new OptionsParser(args);
         OUTPUT_MAP = new File(optionsParser.getPath());
+        OUTPUT_OBJECT_MAP = new File(optionsParser.getObjectPath());
         ensureDirectory(COLLISION_DIR);
         ensureDirectory(XTEA_DIR);
         if(optionsParser.isFreshCache() || isDirectoryEmpty(new File(CACHE_DIR)) || !(new File(CACHE_DIR)).exists())
@@ -144,6 +150,11 @@ public class Dumper
             }
             dumper.collisionMapWriter.save(OUTPUT_MAP.getPath());
             System.out.println("Wrote collision map to " + OUTPUT_MAP);
+
+            // Save compressed version (v2)
+            String compressedPath = OUTPUT_OBJECT_MAP.getPath();
+            dumper.objectMapWriterCompressed.save(compressedPath);
+            System.out.println("Wrote compressed object map to " + compressedPath);
         }
         catch (ExecutionException | InterruptedException e)
         {
@@ -176,6 +187,10 @@ public class Dumper
                         {
                             continue;
                         }
+
+                        // Store the object ID at this coordinate (both formats)
+                        objectMapWriter.addObject((short) regionX, (short) regionY, (byte) z, loc.getId());
+                        objectMapWriterCompressed.addObject((short) regionX, (short) regionY, (byte) z, loc.getId());
 
                         int type = loc.getType();
                         int orientation = loc.getOrientation();
@@ -298,15 +313,6 @@ public class Dumper
 
                     // Handle no-move tiles
                     int floorType = region.getTileSetting(z < 3 ? tileZ : z, localX, localY);
-                    //2926,9576,0
-                    if(localX == 2926 && localX == 9576)
-                    {
-                        System.out.println("Floor type: " + floorType);
-                        System.out.println("Floor type: " + floorType);
-                        System.out.println("Floor type: " + floorType);
-                        System.out.println("Floor type: " + floorType);
-                        System.out.println("Floor type: " + floorType);
-                    }
                     if (floorType == 1 || // water, rooftop wall
                             floorType == 3 || // bridge wall
                             floorType == 5 || // house wall/roof

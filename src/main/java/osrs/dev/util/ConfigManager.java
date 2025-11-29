@@ -26,6 +26,7 @@ public class ConfigManager
         loadConfigFromFile();
         var map = new HashMap<String, Object>();
         map.put("output", System.getProperty("user.home") + "/VitaX/map.dat");
+        map.put("object_output", System.getProperty("user.home") + "/VitaX/objects.dat");
         map.put("fresh_cache", true);
         map.put("bg_color", "#F8F8F8");
         map.put("grid_color", "#00FFFF");
@@ -36,6 +37,10 @@ public class ConfigManager
 
     public String outputPath() {
         return getString("output");
+    }
+
+    public String objectOutputPath() {
+        return getString("object_output");
     }
 
     public boolean freshCache() {
@@ -76,6 +81,10 @@ public class ConfigManager
 
     public void setOutputPath(String path) {
         setProperty("output", path);
+    }
+
+    public void setObjectOutputPath(String path) {
+        setProperty("object_output", path);
     }
 
     public void setFreshCache(boolean fresh) {
