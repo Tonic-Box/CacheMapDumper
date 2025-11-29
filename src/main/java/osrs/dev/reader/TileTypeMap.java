@@ -35,7 +35,7 @@ public class TileTypeMap {
         // Reconstruct 4-bit tile type from individual bit sets
         for (int bit = 0; bit < 4; bit++) {
             if (bitSets[bit].get(index)) {
-                type |= (1 << bit);
+                type |= (byte) (1 << bit);
             }
         }
         return type;

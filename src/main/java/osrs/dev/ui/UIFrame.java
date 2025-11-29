@@ -147,11 +147,26 @@ public class UIFrame extends JFrame {
         speedSlider = createSpeedSlider();
         add(speedSlider, BorderLayout.NORTH);
 
-        // Create a panel to hold all update panels
-        JPanel bottomPanel = new JPanel(new GridLayout(3, 1, 5, 5));
-        bottomPanel.add(createUpdatePanel());
-        bottomPanel.add(createObjectUpdatePanel());
-        bottomPanel.add(createTileTypeUpdatePanel());
+        // Create bottom panel with controls and tabbed paths
+        JPanel bottomPanel = new JPanel(new BorderLayout(5, 5));
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        // Top row: checkbox + update button
+        JPanel controlRow = new JPanel(new BorderLayout(10, 0));
+        downloadCacheCheckBox = new JCheckBox("Download Fresh Cache");
+        downloadCacheCheckBox.setSelected(Main.getConfigManager().freshCache());
+        downloadCacheCheckBox.addItemListener(e -> Main.getConfigManager().setFreshCache(downloadCacheCheckBox.isSelected()));
+        controlRow.add(downloadCacheCheckBox, BorderLayout.CENTER);
+        controlRow.add(createUpdateAllButton(), BorderLayout.EAST);
+        bottomPanel.add(controlRow, BorderLayout.NORTH);
+
+        // Tabbed pane for path configuration
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Collision", createCollisionPathPanel());
+        tabbedPane.addTab("Objects", createObjectPathPanel());
+        tabbedPane.addTab("Tile Types", createTileTypePathPanel());
+        bottomPanel.add(tabbedPane, BorderLayout.CENTER);
+
         add(bottomPanel, BorderLayout.SOUTH);
 
         calculateCenter();
@@ -329,209 +344,56 @@ public class UIFrame extends JFrame {
         setJMenuBar(menuBar);
     }
 
-    /**
-     * Creates the update panel for updating the collision map.
-     * @return The update panel.
-     */
-    private JPanel createUpdatePanel() {
-        JPanel updatePanel = new JPanel(new BorderLayout());
-        updatePanel.setBorder(BorderFactory.createTitledBorder("Update Collision"));
+    private JPanel createCollisionPathPanel() {
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        JPanel pathRow = new JPanel(new BorderLayout(5, 0));
+        pathRow.add(new JLabel("Path:"), BorderLayout.WEST);
+        pathField = new JTextField(Main.getConfigManager().outputPath());
+        pathRow.add(pathField, BorderLayout.CENTER);
+        panel.add(pathRow, BorderLayout.CENTER);
+        return panel;
+    }
 
-        // Create a panel for input fields
-        JPanel inputPanel = new JPanel(new GridLayout(3, 1));
+    private JPanel createObjectPathPanel() {
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        JPanel pathRow = new JPanel(new BorderLayout(5, 0));
+        pathRow.add(new JLabel("Path:"), BorderLayout.WEST);
+        objectPathField = new JTextField(Main.getConfigManager().objectOutputPath());
+        pathRow.add(objectPathField, BorderLayout.CENTER);
+        panel.add(pathRow, BorderLayout.CENTER);
+        return panel;
+    }
 
-        // Add a label and text field for collision map path
-        JLabel pathLabel = new JLabel("Collision Map Path:");
-        pathField = new JTextField();
-        pathField.setText(Main.getConfigManager().outputPath());
-        inputPanel.add(pathLabel);
-        inputPanel.add(pathField);
-
-        // Add input panel to the main update panel
-        updatePanel.add(inputPanel);
-
-        downloadCacheCheckBox = new JCheckBox("Download Fresh Cache (Will download anyways if this is your first time)");
-        downloadCacheCheckBox.setSelected(Main.getConfigManager().freshCache());
-        downloadCacheCheckBox.addItemListener(e -> Main.getConfigManager().setFreshCache(downloadCacheCheckBox.isSelected()));
-        inputPanel.add(downloadCacheCheckBox);
-
-        // Add the Update Collision button at the bottom
-        updatePanel.add(getUpdateButton(), BorderLayout.SOUTH);
-        return updatePanel;
+    private JPanel createTileTypePathPanel() {
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        JPanel pathRow = new JPanel(new BorderLayout(5, 0));
+        pathRow.add(new JLabel("Path:"), BorderLayout.WEST);
+        tileTypePathField = new JTextField(Main.getConfigManager().tileTypeOutputPath());
+        pathRow.add(tileTypePathField, BorderLayout.CENTER);
+        panel.add(pathRow, BorderLayout.CENTER);
+        return panel;
     }
 
     /**
-     * Requests initial focus for the up button (Purpose is to draw focus off of the sliders)
+     * Creates the single update button for dumping all maps.
      */
-    public void requestInitialFocus()
-    {
-        upButton.requestFocusInWindow();
-    }
-
-    /**
-     * Creates the update button for updating the collision map.
-     * @return The update button.
-     */
-    private JButton getUpdateButton() {
-        JButton updateCollision = new JButton("Update Collision");
-        updateCollision.addActionListener(e -> {
+    private JButton updateAllButton;
+    private JButton createUpdateAllButton() {
+        updateAllButton = new JButton("Update Maps");
+        updateAllButton.addActionListener(e -> {
             SwingUtilities.invokeLater(() -> {
-                updateCollision.setText("Updating...");
-                updateCollision.setEnabled(false);
+                updateAllButton.setText("Updating...");
+                updateAllButton.setEnabled(false);
                 revalidate();
                 repaint();
             });
 
+            // Save all paths to config
             Main.getConfigManager().setOutputPath(pathField.getText());
-
-            List<String> options = new ArrayList<>();
-            options.add("-path");
-            options.add(pathField.getText());
-            options.add("-objectPath");
-            options.add(objectPathField.getText());
-            options.add("-tileTypePath");
-            options.add(tileTypePathField.getText());
-            options.add("-fresh");
-            options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
-
-            ThreadPool.submit(() -> {
-                try
-                {
-                    Dumper.main(options.toArray(new String[0]));
-                    Main.load();
-                }
-                catch (Exception ex)
-                {
-                    ex.printStackTrace();
-                }
-                SwingUtilities.invokeLater(() -> {
-                    updateCollision.setText("Update Collision");
-                    updateCollision.setEnabled(true);
-                    revalidate();
-                    repaint();
-                    update();
-                });
-            });
-
-        });
-        return updateCollision;
-    }
-
-    /**
-     * Creates the update panel for updating the object map.
-     * @return The object update panel.
-     */
-    private JPanel createObjectUpdatePanel() {
-        JPanel updatePanel = new JPanel(new BorderLayout());
-        updatePanel.setBorder(BorderFactory.createTitledBorder("Update Object Map"));
-
-        // Create a panel for input field
-        JPanel inputPanel = new JPanel(new GridLayout(2, 1));
-
-        // Add a label and text field for object map path
-        JLabel pathLabel = new JLabel("Object Map Path:");
-        objectPathField = new JTextField();
-        objectPathField.setText(Main.getConfigManager().objectOutputPath());
-        inputPanel.add(pathLabel);
-        inputPanel.add(objectPathField);
-
-        // Add input panel to the main update panel
-        updatePanel.add(inputPanel, BorderLayout.CENTER);
-
-        // Add the Update Object Map button at the bottom
-        updatePanel.add(getUpdateObjectButton(), BorderLayout.SOUTH);
-        return updatePanel;
-    }
-
-    /**
-     * Creates the update button for updating the object map.
-     * @return The update object button.
-     */
-    private JButton getUpdateObjectButton() {
-        JButton updateObjects = new JButton("Update Object Map");
-        updateObjects.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> {
-                updateObjects.setText("Updating...");
-                updateObjects.setEnabled(false);
-                revalidate();
-                repaint();
-            });
-
             Main.getConfigManager().setObjectOutputPath(objectPathField.getText());
-
-            List<String> options = new ArrayList<>();
-            options.add("-path");
-            options.add(pathField.getText());
-            options.add("-objectPath");
-            options.add(objectPathField.getText());
-            options.add("-tileTypePath");
-            options.add(tileTypePathField.getText());
-            options.add("-fresh");
-            options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
-
-            ThreadPool.submit(() -> {
-                try
-                {
-                    Dumper.main(options.toArray(new String[0]));
-                    Main.load();
-                }
-                catch (Exception ex)
-                {
-                    ex.printStackTrace();
-                }
-                SwingUtilities.invokeLater(() -> {
-                    updateObjects.setText("Update Object Map");
-                    updateObjects.setEnabled(true);
-                    revalidate();
-                    repaint();
-                    update();
-                });
-            });
-
-        });
-        return updateObjects;
-    }
-
-    /**
-     * Creates the update panel for updating the tile type map.
-     * @return The tile type update panel.
-     */
-    private JPanel createTileTypeUpdatePanel() {
-        JPanel updatePanel = new JPanel(new BorderLayout());
-        updatePanel.setBorder(BorderFactory.createTitledBorder("Update Tile Type Map"));
-
-        // Create a panel for input field
-        JPanel inputPanel = new JPanel(new GridLayout(2, 1));
-
-        // Add a label and text field for tile type map path
-        JLabel pathLabel = new JLabel("Tile Type Map Path:");
-        tileTypePathField = new JTextField();
-        tileTypePathField.setText(Main.getConfigManager().tileTypeOutputPath());
-        inputPanel.add(pathLabel);
-        inputPanel.add(tileTypePathField);
-
-        // Add input panel to the main update panel
-        updatePanel.add(inputPanel, BorderLayout.CENTER);
-
-        // Add the Update Tile Type Map button at the bottom
-        updatePanel.add(getUpdateTileTypeButton(), BorderLayout.SOUTH);
-        return updatePanel;
-    }
-
-    /**
-     * Creates the update button for updating the tile type map.
-     * @return The update tile type button.
-     */
-    private JButton getUpdateTileTypeButton() {
-        JButton updateTileTypes = new JButton("Update Tile Type Map");
-        updateTileTypes.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> {
-                updateTileTypes.setText("Updating...");
-                updateTileTypes.setEnabled(false);
-                revalidate();
-                repaint();
-            });
-
             Main.getConfigManager().setTileTypeOutputPath(tileTypePathField.getText());
 
             List<String> options = new ArrayList<>();
@@ -545,26 +407,30 @@ public class UIFrame extends JFrame {
             options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
 
             ThreadPool.submit(() -> {
-                try
-                {
+                try {
                     Dumper.main(options.toArray(new String[0]));
                     Main.load();
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
                 SwingUtilities.invokeLater(() -> {
-                    updateTileTypes.setText("Update Tile Type Map");
-                    updateTileTypes.setEnabled(true);
+                    updateAllButton.setText("Update Maps");
+                    updateAllButton.setEnabled(true);
                     revalidate();
                     repaint();
                     update();
                 });
             });
-
         });
-        return updateTileTypes;
+        return updateAllButton;
+    }
+
+    /**
+     * Requests initial focus for the up button (Purpose is to draw focus off of the sliders)
+     */
+    public void requestInitialFocus()
+    {
+        upButton.requestFocusInWindow();
     }
 
     /**
