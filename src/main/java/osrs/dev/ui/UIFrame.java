@@ -34,6 +34,7 @@ public class UIFrame extends JFrame {
     private JTextField worldPointField;
     private JComboBox<ViewerMode> viewerModeComboBox;
     private ViewerMode currentViewerMode = ViewerMode.COLLISION;
+    private Point dragStart;
 
     /**
      * Creates a new UI frame for the Collision Viewer.
@@ -166,6 +167,45 @@ public class UIFrame extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 upButton.requestFocusInWindow();
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (busy()) return;
+                dragStart = e.getPoint();
+                mapView.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                dragStart = null;
+                mapView.setCursor(Cursor.getDefaultCursor());
+            }
+        });
+
+        mapView.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (dragStart == null || busy()) return;
+
+                Point current = e.getPoint();
+                int deltaX = current.x - dragStart.x;
+                int deltaY = current.y - dragStart.y;
+
+                // Convert screen pixels to world tiles
+                float pixelsPerCellX = (float) mapView.getWidth() / zoomSlider.getValue();
+                float pixelsPerCellY = (float) mapView.getHeight() / zoomSlider.getValue();
+
+                int worldDeltaX = Math.round(-deltaX / pixelsPerCellX);
+                int worldDeltaY = Math.round(deltaY / pixelsPerCellY);  // Y inverted
+
+                if (worldDeltaX != 0 || worldDeltaY != 0) {
+                    base.setX(base.getX() + worldDeltaX);
+                    base.setY(base.getY() + worldDeltaY);
+                    calculateCenter();
+                    update();
+                    dragStart = current;  // Reset for continuous drag
+                }
             }
         });
 
