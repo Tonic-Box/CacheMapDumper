@@ -2,7 +2,9 @@ package osrs.dev;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import lombok.Getter;
+import lombok.Setter;
 import osrs.dev.dumper.Dumper;
+import osrs.dev.graph.Graph;
 import osrs.dev.reader.CollisionMap;
 import osrs.dev.reader.ObjectMapOptimized;
 import osrs.dev.reader.TileTypeMap;
@@ -26,6 +28,9 @@ public class Main
     private static TileTypeMap tileTypeMap;
     @Getter
     private static ConfigManager configManager;
+    @Getter
+    @Setter
+    private static Graph graph;
     private static UIFrame frame;
 
     /**
@@ -49,6 +54,9 @@ public class Main
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             ThreadPool.shutdown();
             configManager.saveConfig();
+            if (graph != null) {
+                graph.save(configManager.graphOutputPath());
+            }
         }));
     }
 
@@ -71,6 +79,17 @@ public class Main
         if(Dumper.OUTPUT_TILE_TYPE_MAP.exists())
         {
             tileTypeMap = TileTypeMap.load(Dumper.OUTPUT_TILE_TYPE_MAP.getPath());
+        }
+
+        // Load graph
+        File graphFile = new File(configManager.graphOutputPath());
+        if(graphFile.exists())
+        {
+            graph = Graph.load(graphFile.getPath());
+        }
+        else
+        {
+            graph = new Graph();
         }
 
 //        if(Dumper.OUTPUT_OBJECT_MAP.exists())

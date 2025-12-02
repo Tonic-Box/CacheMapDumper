@@ -2,7 +2,11 @@ package osrs.dev.ui.viewport;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
+import lombok.Setter;
 import osrs.dev.Main;
+import osrs.dev.graph.Graph;
+import osrs.dev.graph.GraphEdge;
+import osrs.dev.graph.GraphNode;
 import osrs.dev.reader.TileType;
 import osrs.dev.ui.ViewerMode;
 import osrs.dev.util.WorldPoint;
@@ -24,9 +28,20 @@ public class ViewPort
     private int lastHeight = 0;
     private ViewerMode viewerMode = ViewerMode.COLLISION;
 
+    @Setter
+    private Graph graph;
+    @Setter
+    private String selectedNodeId;
+    @Setter
+    private String selectedEdgeId;
+    @Setter
+    private String pendingEdgeSourceId; // For edge creation highlight
+
     /**
      * Immutable map of tile types to their rendering colors.
+     * Public for use by GraphPaletteFrame legend.
      */
+    @Getter
     private static final ImmutableMap<Byte, Color> TILE_TYPE_COLORS = ImmutableMap.<Byte, Color>builder()
             .put(TileType.WATER, new Color(0, 100, 200))                   // Blue
             .put(TileType.CRANDOR_SMEGMA_WATER, new Color(100, 150, 100))  // Greenish
@@ -102,6 +117,11 @@ public class ViewPort
                 renderTileTypeMode(g2d, width, height);
             } else if (viewerMode == ViewerMode.COMBINED) {
                 renderCombinedMode(g2d, width, height);
+            }
+
+            // Render graph overlay in COMBINED mode
+            if (viewerMode == ViewerMode.COMBINED) {
+                renderGraphOverlay(g2d, width, height);
             }
         }
         catch(Exception ignored) {
@@ -227,5 +247,105 @@ public class ViewPort
         }
 
         return cells;
+    }
+
+    /**
+     * Renders the graph overlay (nodes and edges) on top of the map.
+     */
+    private void renderGraphOverlay(Graphics2D g2d, int width, int height) {
+        if (graph == null) return;
+
+        float cellWidth = (float) width / cellDim;
+        float cellHeight = (float) height / cellDim;
+
+        // Enable anti-aliasing for smooth edges
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Draw edges first (behind nodes)
+        for (GraphEdge edge : graph.getEdges()) {
+            GraphNode source = graph.getNodeById(edge.getSourceId());
+            GraphNode target = graph.getNodeById(edge.getTargetId());
+            if (source == null || target == null) continue;
+            if (source.getPlane() != displayPlane) continue;
+
+            Point p1 = worldToScreen(source.getX(), source.getY(), cellWidth, cellHeight, height);
+            Point p2 = worldToScreen(target.getX(), target.getY(), cellWidth, cellHeight, height);
+
+            // Skip if both points are off screen
+            if (!isOnScreen(p1, width, height) && !isOnScreen(p2, width, height)) continue;
+
+            try {
+                g2d.setColor(Color.decode(edge.getColor()));
+            } catch (NumberFormatException e) {
+                g2d.setColor(Color.YELLOW);
+            }
+
+            // Selected edge is thicker
+            boolean isSelected = edge.getId().equals(selectedEdgeId);
+            g2d.setStroke(new BasicStroke(isSelected ? 4 : 2));
+            g2d.drawLine(p1.x, p1.y, p2.x, p2.y);
+
+            // Draw selection highlight
+            if (isSelected) {
+                g2d.setColor(Color.WHITE);
+                g2d.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[]{5, 5}, 0));
+                g2d.drawLine(p1.x, p1.y, p2.x, p2.y);
+            }
+        }
+
+        // Draw nodes on top
+        int nodeRadius = 6;
+        for (GraphNode node : graph.getNodes()) {
+            if (node.getPlane() != displayPlane) continue;
+
+            Point p = worldToScreen(node.getX(), node.getY(), cellWidth, cellHeight, height);
+
+            // Skip if off screen
+            if (!isOnScreen(p, width, height)) continue;
+
+            try {
+                g2d.setColor(Color.decode(node.getColor()));
+            } catch (NumberFormatException e) {
+                g2d.setColor(Color.GREEN);
+            }
+            g2d.fillOval(p.x - nodeRadius, p.y - nodeRadius, nodeRadius * 2, nodeRadius * 2);
+
+            // Draw border
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(1));
+            g2d.drawOval(p.x - nodeRadius, p.y - nodeRadius, nodeRadius * 2, nodeRadius * 2);
+
+            // Selection highlight (white ring)
+            boolean isSelected = node.getId().equals(selectedNodeId);
+            boolean isPendingEdgeSource = node.getId().equals(pendingEdgeSourceId);
+            if (isSelected || isPendingEdgeSource) {
+                g2d.setColor(isPendingEdgeSource ? Color.CYAN : Color.WHITE);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawOval(p.x - nodeRadius - 3, p.y - nodeRadius - 3,
+                        (nodeRadius + 3) * 2, (nodeRadius + 3) * 2);
+            }
+        }
+
+        // Reset stroke
+        g2d.setStroke(new BasicStroke(1));
+    }
+
+    /**
+     * Converts world coordinates to screen coordinates.
+     */
+    private Point worldToScreen(int worldX, int worldY, float cellWidth, float cellHeight, int height) {
+        int cellX = worldX - base.getX();
+        int cellY = worldY - base.getY();
+        int screenX = Math.round((cellX + 0.5f) * cellWidth);
+        int screenY = height - Math.round((cellY + 0.5f) * cellHeight);
+        return new Point(screenX, screenY);
+    }
+
+    /**
+     * Checks if a point is within the visible screen bounds (with margin).
+     */
+    private boolean isOnScreen(Point p, int width, int height) {
+        int margin = 50;
+        return p.x >= -margin && p.x <= width + margin && p.y >= -margin && p.y <= height + margin;
     }
 }

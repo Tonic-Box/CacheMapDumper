@@ -2,6 +2,9 @@ package osrs.dev.ui;
 
 import osrs.dev.dumper.Dumper;
 import osrs.dev.Main;
+import osrs.dev.graph.Graph;
+import osrs.dev.graph.GraphEdge;
+import osrs.dev.graph.GraphNode;
 import osrs.dev.reader.TileType;
 import osrs.dev.ui.viewport.ViewPort;
 import osrs.dev.util.ImageUtil;
@@ -36,6 +39,15 @@ public class UIFrame extends JFrame {
     private JComboBox<ViewerMode> viewerModeComboBox;
     private ViewerMode currentViewerMode = ViewerMode.COLLISION;
     private Point dragStart;
+
+    // Graph editing state
+    private GraphPaletteFrame graphPaletteFrame;
+    private JToggleButton webButton;
+    private boolean graphEditMode = false;
+    private GraphNode pendingEdgeSource = null;  // First node for edge creation
+    private Object selectedElement = null;       // Currently selected node or edge
+    private GraphNode draggingNode = null;       // Node being dragged
+    private boolean nodeWasMoved = false;        // Flag to track if node actually moved during drag
 
     /**
      * Creates a new UI frame for the Collision Viewer.
@@ -183,17 +195,70 @@ public class UIFrame extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 upButton.requestFocusInWindow();
+                if (graphEditMode) {
+                    // Check if in picker mode first
+                    if (graphPaletteFrame != null && graphPaletteFrame.isPickerMode()) {
+                        handlePickerClick(e);
+                    } else {
+                        handleGraphClick(e);
+                    }
+                }
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
                 if (busy()) return;
-                dragStart = e.getPoint();
-                mapView.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+
+                // Check for Ctrl+click node drag in graph edit mode
+                if (graphEditMode && e.isControlDown() && SwingUtilities.isLeftMouseButton(e)) {
+                    Graph graph = Main.getGraph();
+                    if (graph != null) {
+                        WorldPoint worldPoint = screenToWorld(e.getPoint());
+                        // Use a larger tolerance for easier grabbing
+                        int tolerance = Math.max(5, zoomSlider.getValue() / 10);
+                        GraphNode node = graph.findNodeAt(worldPoint.getX(), worldPoint.getY(), base.getPlane(), tolerance);
+                        if (node != null) {
+                            draggingNode = node;
+                            selectedElement = node;
+                            viewPort.setSelectedNodeId(node.getId());
+                            viewPort.setSelectedEdgeId(null);
+                            mapView.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                            if (graphPaletteFrame != null) {
+                                graphPaletteFrame.selectNode(node);
+                            }
+                            return;
+                        }
+                    }
+                }
+
+                // Map panning: right-click always, or left-click when not in graph edit mode
+                if (SwingUtilities.isRightMouseButton(e) || !graphEditMode) {
+                    dragStart = e.getPoint();
+                    mapView.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
+                // Finalize node drag
+                if (draggingNode != null) {
+                    // Only save and recalculate if node was actually moved
+                    if (nodeWasMoved) {
+                        Graph graph = Main.getGraph();
+                        if (graph != null) {
+                            for (GraphEdge edge : graph.getEdgesForNode(draggingNode.getId())) {
+                                graph.calculateEdgeTileTypes(edge);
+                            }
+                        }
+                        saveGraph();
+                        if (graphPaletteFrame != null) {
+                            graphPaletteFrame.refresh();
+                        }
+                    }
+                    draggingNode = null;
+                    nodeWasMoved = false;
+                }
+
                 dragStart = null;
                 mapView.setCursor(Cursor.getDefaultCursor());
             }
@@ -202,7 +267,23 @@ public class UIFrame extends JFrame {
         mapView.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (dragStart == null || busy()) return;
+                if (busy()) return;
+
+                // Handle node dragging
+                if (draggingNode != null) {
+                    WorldPoint worldPoint = screenToWorld(e.getPoint());
+                    // Check if position actually changed
+                    if (draggingNode.getX() != worldPoint.getX() || draggingNode.getY() != worldPoint.getY()) {
+                        draggingNode.setX(worldPoint.getX());
+                        draggingNode.setY(worldPoint.getY());
+                        nodeWasMoved = true;
+                        update();
+                    }
+                    return;
+                }
+
+                // Handle map panning
+                if (dragStart == null) return;
 
                 Point current = e.getPoint();
                 int deltaX = current.x - dragStart.x;
@@ -227,6 +308,12 @@ public class UIFrame extends JFrame {
             @Override
             public void mouseMoved(MouseEvent e) {
                 updateTileTypeTooltip(e.getPoint());
+                // Update cursor based on picker mode
+                if (graphEditMode && graphPaletteFrame != null && graphPaletteFrame.isPickerMode()) {
+                    mapView.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+                } else if (dragStart == null) {
+                    mapView.setCursor(Cursor.getDefaultCursor());
+                }
             }
         });
 
@@ -342,9 +429,18 @@ public class UIFrame extends JFrame {
         viewerModeComboBox.setMaximumSize(new Dimension(100, 25));
         viewerModeComboBox.addActionListener(e -> {
             currentViewerMode = (ViewerMode) viewerModeComboBox.getSelectedItem();
+            updateWebButtonState();
             update();
         });
         menuBar.add(viewerModeComboBox);
+
+        // Add Web toggle button for graph editing (only active in COMBINED mode)
+        menuBar.add(Box.createHorizontalStrut(10));
+        webButton = new JToggleButton("Web");
+        webButton.setToolTipText("Toggle graph editing mode (COMBINED view only)");
+        webButton.addActionListener(e -> toggleGraphEditMode());
+        webButton.setEnabled(currentViewerMode == ViewerMode.COMBINED);
+        menuBar.add(webButton);
 
         // Set the menu bar for the JFrame
         setJMenuBar(menuBar);
@@ -587,6 +683,30 @@ public class UIFrame extends JFrame {
             }
         };
 
+        Action deleteAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                deleteSelectedGraphElement();
+            }
+        };
+
+        Action escapeAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Cancel picker mode
+                if (graphPaletteFrame != null && graphPaletteFrame.isPickerMode()) {
+                    graphPaletteFrame.cancelPickerMode();
+                    return;
+                }
+                // Cancel pending edge creation
+                if (pendingEdgeSource != null) {
+                    pendingEdgeSource = null;
+                    viewPort.setPendingEdgeSourceId(null);
+                    update();
+                }
+            }
+        };
+
         // Bind the arrow keys to actions
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "upAction");
         component.getActionMap().put("upAction", upAction);
@@ -611,6 +731,12 @@ public class UIFrame extends JFrame {
 
         component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("3"), "threeAction");
         component.getActionMap().put("threeAction", threeAction);
+
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DELETE"), "deleteAction");
+        component.getActionMap().put("deleteAction", deleteAction);
+
+        component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escapeAction");
+        component.getActionMap().put("escapeAction", escapeAction);
     }
 
     /**
@@ -665,5 +791,228 @@ public class UIFrame extends JFrame {
         } else {
             mapView.setToolTipText(null);
         }
+    }
+
+    // ==================== Graph Editing Methods ====================
+
+    /**
+     * Updates the Web button enabled state based on current viewer mode.
+     */
+    private void updateWebButtonState() {
+        boolean enabled = currentViewerMode == ViewerMode.COMBINED;
+        webButton.setEnabled(enabled);
+        if (!enabled && graphEditMode) {
+            toggleGraphEditMode(); // Turn off if switching away from COMBINED
+        }
+    }
+
+    /**
+     * Toggles graph editing mode on/off.
+     */
+    private void toggleGraphEditMode() {
+        graphEditMode = webButton.isSelected();
+
+        if (graphEditMode) {
+            // Open palette window
+            if (graphPaletteFrame == null) {
+                graphPaletteFrame = new GraphPaletteFrame(
+                        this::onPaletteSelectionChanged,
+                        this::update
+                );
+            }
+            graphPaletteFrame.refresh();
+            graphPaletteFrame.setVisible(true);
+
+            // Set graph in viewport
+            viewPort.setGraph(Main.getGraph());
+        } else {
+            // Hide palette
+            if (graphPaletteFrame != null) {
+                graphPaletteFrame.setVisible(false);
+            }
+            // Clear selection state
+            pendingEdgeSource = null;
+            selectedElement = null;
+            viewPort.setSelectedNodeId(null);
+            viewPort.setSelectedEdgeId(null);
+            viewPort.setPendingEdgeSourceId(null);
+        }
+        update();
+    }
+
+    /**
+     * Called when selection changes in the palette.
+     */
+    private void onPaletteSelectionChanged(Object selection) {
+        selectedElement = selection;
+        if (selection instanceof GraphNode) {
+            viewPort.setSelectedNodeId(((GraphNode) selection).getId());
+            viewPort.setSelectedEdgeId(null);
+        } else if (selection instanceof GraphEdge) {
+            viewPort.setSelectedEdgeId(((GraphEdge) selection).getId());
+            viewPort.setSelectedNodeId(null);
+        } else {
+            viewPort.setSelectedNodeId(null);
+            viewPort.setSelectedEdgeId(null);
+        }
+        update();
+    }
+
+    /**
+     * Handles mouse clicks on the map when in graph edit mode.
+     */
+    private void handleGraphClick(MouseEvent e) {
+        if (!graphEditMode || busy()) return;
+
+        Graph graph = Main.getGraph();
+        if (graph == null) return;
+
+        // Convert screen to world coordinates
+        Point screenPoint = e.getPoint();
+        WorldPoint worldPoint = screenToWorld(screenPoint);
+        int worldX = worldPoint.getX();
+        int worldY = worldPoint.getY();
+        int plane = base.getPlane();
+
+        // Calculate click tolerance based on zoom
+        int tolerance = Math.max(3, Math.min(10, zoomSlider.getValue() / 20));
+
+        if (e.isControlDown()) {
+            // Ctrl+Click: Edge creation mode
+            GraphNode clickedNode = graph.findNodeAt(worldX, worldY, plane, tolerance);
+
+            if (clickedNode != null) {
+                if (pendingEdgeSource == null) {
+                    // First node selected - start edge creation
+                    pendingEdgeSource = clickedNode;
+                    viewPort.setPendingEdgeSourceId(clickedNode.getId());
+                    update();
+                } else {
+                    // Second node selected - create edge
+                    if (!pendingEdgeSource.getId().equals(clickedNode.getId())) {
+                        GraphEdge newEdge = graph.addEdge(pendingEdgeSource.getId(), clickedNode.getId());
+                        if (newEdge != null) {
+                            saveGraph();
+                            if (graphPaletteFrame != null) {
+                                graphPaletteFrame.refresh();
+                                graphPaletteFrame.selectEdge(newEdge);
+                            }
+                            selectedElement = newEdge;
+                            viewPort.setSelectedEdgeId(newEdge.getId());
+                        }
+                    }
+                    // Clear pending state
+                    pendingEdgeSource = null;
+                    viewPort.setPendingEdgeSourceId(null);
+                    update();
+                }
+            }
+        } else {
+            // Regular click: Select existing or create new node
+            GraphNode existingNode = graph.findNodeAt(worldX, worldY, plane, tolerance);
+
+            if (existingNode != null) {
+                // Select existing node
+                selectedElement = existingNode;
+                viewPort.setSelectedNodeId(existingNode.getId());
+                viewPort.setSelectedEdgeId(null);
+                if (graphPaletteFrame != null) {
+                    graphPaletteFrame.selectNode(existingNode);
+                }
+            } else {
+                // Check if clicking near an edge
+                GraphEdge existingEdge = graph.findEdgeNear(worldX, worldY, plane, tolerance);
+                if (existingEdge != null) {
+                    selectedElement = existingEdge;
+                    viewPort.setSelectedEdgeId(existingEdge.getId());
+                    viewPort.setSelectedNodeId(null);
+                    if (graphPaletteFrame != null) {
+                        graphPaletteFrame.selectEdge(existingEdge);
+                    }
+                } else {
+                    // Create new node
+                    GraphNode newNode = graph.addNode(worldX, worldY, plane);
+                    saveGraph();
+                    selectedElement = newNode;
+                    viewPort.setSelectedNodeId(newNode.getId());
+                    viewPort.setSelectedEdgeId(null);
+                    if (graphPaletteFrame != null) {
+                        graphPaletteFrame.refresh();
+                        graphPaletteFrame.selectNode(newNode);
+                    }
+                }
+            }
+            // Clear pending edge state on regular click
+            pendingEdgeSource = null;
+            viewPort.setPendingEdgeSourceId(null);
+            update();
+        }
+    }
+
+    /**
+     * Converts screen coordinates to world coordinates.
+     */
+    private WorldPoint screenToWorld(Point screenPoint) {
+        float pixelsPerCellX = (float) mapView.getWidth() / zoomSlider.getValue();
+        float pixelsPerCellY = (float) mapView.getHeight() / zoomSlider.getValue();
+
+        int cellX = (int) (screenPoint.x / pixelsPerCellX);
+        int cellY = (int) ((mapView.getHeight() - screenPoint.y) / pixelsPerCellY);
+
+        int worldX = base.getX() + cellX;
+        int worldY = base.getY() + cellY;
+
+        return new WorldPoint(worldX, worldY, base.getPlane());
+    }
+
+    /**
+     * Deletes the currently selected graph element.
+     */
+    private void deleteSelectedGraphElement() {
+        if (!graphEditMode) return;
+
+        Graph graph = Main.getGraph();
+        if (graph == null) return;
+
+        if (selectedElement instanceof GraphNode) {
+            graph.removeNode(((GraphNode) selectedElement).getId());
+            selectedElement = null;
+            viewPort.setSelectedNodeId(null);
+        } else if (selectedElement instanceof GraphEdge) {
+            graph.removeEdge(((GraphEdge) selectedElement).getId());
+            selectedElement = null;
+            viewPort.setSelectedEdgeId(null);
+        }
+
+        saveGraph();
+        if (graphPaletteFrame != null) {
+            graphPaletteFrame.refresh();
+            graphPaletteFrame.clearSelection();
+        }
+        update();
+    }
+
+    /**
+     * Saves the graph to file.
+     */
+    private void saveGraph() {
+        Graph graph = Main.getGraph();
+        if (graph != null) {
+            graph.save(Main.getConfigManager().graphOutputPath());
+        }
+    }
+
+    /**
+     * Handles mouse clicks when in picker mode for auto-generation.
+     */
+    private void handlePickerClick(MouseEvent e) {
+        if (graphPaletteFrame == null || !graphPaletteFrame.isPickerMode()) return;
+
+        // Convert screen to world coordinates
+        Point screenPoint = e.getPoint();
+        WorldPoint worldPoint = screenToWorld(screenPoint);
+
+        // Pass to palette for validation and generation
+        graphPaletteFrame.onPointPicked(worldPoint.getX(), worldPoint.getY(), base.getPlane());
     }
 }
