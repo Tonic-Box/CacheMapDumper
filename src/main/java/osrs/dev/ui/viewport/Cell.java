@@ -103,6 +103,19 @@ public class Cell {
      */
     public void render(Graphics2D g2d, int cells, int width, int height)
     {
+        render(g2d, cells, width, height, false);
+    }
+
+    /**
+     * Render the cell with option to skip fill
+     * @param g2d the graphics object
+     * @param cells the number of cells
+     * @param width the width of the viewport
+     * @param height the height of the viewport
+     * @param skipFill if true, don't fill blocked tiles with red (walls still drawn)
+     */
+    public void render(Graphics2D g2d, int cells, int width, int height, boolean skipFill)
+    {
         float cellWidth = (float) width / cells;
         float cellHeight = (float) height / cells;
 
@@ -117,7 +130,7 @@ public class Cell {
                 g2d.setColor(Main.getConfigManager().collisionColor());
             else
                 g2d.setColor(Main.getConfigManager().wallColor());
-            if(full())
+            if(full() && !skipFill)
             {
                 g2d.fillRect(x, y, Math.round(cellWidth) + 1, Math.round(cellHeight) + 1);
             }

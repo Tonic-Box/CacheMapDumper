@@ -2,6 +2,7 @@ package osrs.dev.ui;
 
 import osrs.dev.dumper.Dumper;
 import osrs.dev.Main;
+import osrs.dev.reader.TileType;
 import osrs.dev.ui.viewport.ViewPort;
 import osrs.dev.util.ImageUtil;
 import osrs.dev.util.ThreadPool;
@@ -221,6 +222,11 @@ public class UIFrame extends JFrame {
                     update();
                     dragStart = current;  // Reset for continuous drag
                 }
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                updateTileTypeTooltip(e.getPoint());
             }
         });
 
@@ -623,5 +629,41 @@ public class UIFrame extends JFrame {
             center.setPlane(plane);
             update();
         });
+    }
+
+    /**
+     * Updates the tooltip to show tile type info when in Tile Type or Combined mode.
+     * @param mousePoint the mouse position in component coordinates
+     */
+    private void updateTileTypeTooltip(Point mousePoint) {
+        // Only show tooltip in Tile Type or Combined mode
+        if (currentViewerMode != ViewerMode.TILE_TYPE && currentViewerMode != ViewerMode.COMBINED) {
+            mapView.setToolTipText(null);
+            return;
+        }
+
+        if (Main.getTileTypeMap() == null) {
+            mapView.setToolTipText(null);
+            return;
+        }
+
+        // Convert screen coordinates to world coordinates
+        float pixelsPerCellX = (float) mapView.getWidth() / zoomSlider.getValue();
+        float pixelsPerCellY = (float) mapView.getHeight() / zoomSlider.getValue();
+
+        int cellX = (int) (mousePoint.x / pixelsPerCellX);
+        int cellY = (int) ((mapView.getHeight() - mousePoint.y) / pixelsPerCellY);  // Y inverted
+
+        int worldX = base.getX() + cellX;
+        int worldY = base.getY() + cellY;
+
+        byte tileType = Main.getTileTypeMap().getTileType(worldX, worldY, base.getPlane());
+        String typeName = TileType.getName(tileType);
+
+        if (typeName != null) {
+            mapView.setToolTipText(typeName);
+        } else {
+            mapView.setToolTipText(null);
+        }
     }
 }

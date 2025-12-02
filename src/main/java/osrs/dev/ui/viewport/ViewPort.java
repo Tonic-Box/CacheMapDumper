@@ -100,6 +100,8 @@ public class ViewPort
                 renderCollisionMode(g2d, width, height);
             } else if (viewerMode == ViewerMode.TILE_TYPE) {
                 renderTileTypeMode(g2d, width, height);
+            } else if (viewerMode == ViewerMode.COMBINED) {
+                renderCombinedMode(g2d, width, height);
             }
         }
         catch(Exception ignored) {
@@ -149,6 +151,52 @@ public class ViewPort
                     int screenY = height - Math.round((y + 1) * cellHeight);
                     g2d.fillRect(screenX, screenY, Math.round(cellWidth) + 1, Math.round(cellHeight) + 1);
                 }
+            }
+        }
+    }
+
+    /**
+     * Renders combined mode: tile type colors as background, collision overlaid on top.
+     */
+    private void renderCombinedMode(Graphics2D g2d, int width, int height) {
+        if (Main.getCollision() == null) return;
+
+        if(lastPlane != base.getPlane())
+        {
+            lastPlane = base.getPlane();
+            displayPlane = base.getPlane();
+        }
+
+        float cellWidth = (float) width / cellDim;
+        float cellHeight = (float) height / cellDim;
+
+        for(int x = 0; x < cellDim; x++)
+        {
+            for(int y = 0; y < cellDim; y++)
+            {
+                int worldX = base.getX() + x;
+                int worldY = base.getY() + y;
+
+                // First: render tile type color as background (instead of white)
+                boolean hasTileType = false;
+                if (Main.getTileTypeMap() != null) {
+                    byte tileType = Main.getTileTypeMap().getTileType(worldX, worldY, displayPlane);
+                    if (tileType > 0) {
+                        hasTileType = true;
+                        Color color = TILE_TYPE_COLORS.getOrDefault(tileType, DEFAULT_TILE_TYPE_COLOR);
+                        g2d.setColor(color);
+                        int screenX = Math.round(x * cellWidth);
+                        int screenY = height - Math.round((y + 1) * cellHeight);
+                        g2d.fillRect(screenX, screenY, Math.round(cellWidth) + 1, Math.round(cellHeight) + 1);
+                    }
+                }
+
+                // Second: render collision on top (walls, blocked areas)
+                // If tile has a tile type, skip red fill but still draw walls
+                byte flag = Main.getCollision().all((short)worldX, (short)worldY, (byte)displayPlane);
+                Point cellPoint = new Point(x, y);
+                Cell cell = new Cell(flag, cellPoint);
+                cell.render(g2d, cellDim, width, height, hasTileType);
             }
         }
     }

@@ -5,7 +5,8 @@ package osrs.dev.ui;
  */
 public enum ViewerMode {
     COLLISION("Collision"),
-    TILE_TYPE("Tile Type");
+    TILE_TYPE("Tile Type"),
+    COMBINED("Combined");
 
     private final String displayName;
 

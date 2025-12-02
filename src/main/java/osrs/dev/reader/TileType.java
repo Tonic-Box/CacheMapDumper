@@ -88,4 +88,27 @@ public class TileType {
             .put(187, JAGGED_REEFS_WATER)
             .put(188, JAGGED_REEFS_WATER)
             .build();
+
+    /**
+     * Gets the display name for a tile type.
+     * @param tileType the tile type byte
+     * @return the display name, or null if unknown
+     */
+    public static String getName(byte tileType) {
+        switch (tileType) {
+            case WATER: return "Water";
+            case CRANDOR_SMEGMA_WATER: return "Crandor Water";
+            case TEMPOR_STORM_WATER: return "Tempoross Storm Water";
+            case DISEASE_WATER: return "Disease Water";
+            case KELP_WATER: return "Kelp Water";
+            case SUNBAKED_WATER: return "Sunbaked Water";
+            case JAGGED_REEFS_WATER: return "Jagged Reefs Water";
+            case SHARP_CRYSTAL_WATER: return "Sharp Crystal Water";
+            case ICE_WATER: return "Ice Water";
+            case NE_PURPLE_GRAY_WATER: return "Purple-Gray Water";
+            case NW_GRAY_WATER: return "Gray Water";
+            case SE_PURPLE_WATER: return "Purple Water";
+            default: return null;
+        }
+    }
 }
