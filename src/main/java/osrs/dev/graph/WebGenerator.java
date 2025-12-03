@@ -104,10 +104,13 @@ public class WebGenerator {
         frontier.add(new long[]{seedX, seedY});
         visitedTiles.add(packCoords(seedX, seedY));
 
-        // Place first node at seed
-        GraphNode seedNode = new GraphNode(seedX, seedY, plane);
-        nodes.add(seedNode);
-        nodeGridCells.add(getGridCell(seedX, seedY));
+        // Place first node at seed only if it meets buffer requirement
+        int seedBufferDist = calculateCollisionBuffer(seedX, seedY);
+        if (seedBufferDist >= collisionBuffer) {
+            GraphNode seedNode = new GraphNode(seedX, seedY, plane);
+            nodes.add(seedNode);
+            nodeGridCells.add(getGridCell(seedX, seedY));
+        }
 
         int tilesExplored = 0;
 
@@ -186,10 +189,13 @@ public class WebGenerator {
         // Calculate buffer distance from collision
         int bufferDist = calculateCollisionBuffer(nx, ny);
 
-        // Check if this is a better candidate than existing one
-        int[] existing = gridCellCandidates.get(gridCell);
-        if (existing == null || bufferDist > existing[2]) {
-            gridCellCandidates.put(gridCell, new int[]{nx, ny, bufferDist});
+        // Only consider this position if it meets the minimum buffer requirement
+        if (bufferDist >= collisionBuffer) {
+            // Check if this is a better candidate than existing one
+            int[] existing = gridCellCandidates.get(gridCell);
+            if (existing == null || bufferDist > existing[2]) {
+                gridCellCandidates.put(gridCell, new int[]{nx, ny, bufferDist});
+            }
         }
     }
 
