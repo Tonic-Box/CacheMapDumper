@@ -45,9 +45,11 @@ public class UIFrame extends JFrame {
     private JToggleButton webButton;
     private boolean graphEditMode = false;
     private GraphNode pendingEdgeSource = null;  // First node for edge creation
-    private Object selectedElement = null;       // Currently selected node or edge
+    private GraphNode selectedNode = null;       // Currently selected node
+    private GraphEdge selectedEdge = null;       // Currently selected edge
     private GraphNode draggingNode = null;       // Node being dragged
     private boolean nodeWasMoved = false;        // Flag to track if node actually moved during drag
+    private GraphNode ctrlPressedNode = null;    // Node that was Ctrl+pressed (for edge creation vs drag)
 
     /**
      * Creates a new UI frame for the Collision Viewer.
@@ -209,6 +211,9 @@ public class UIFrame extends JFrame {
             public void mousePressed(MouseEvent e) {
                 if (busy()) return;
 
+                // Reset ctrl press tracking
+                ctrlPressedNode = null;
+
                 // Check for Ctrl+click node drag in graph edit mode
                 if (graphEditMode && e.isControlDown() && SwingUtilities.isLeftMouseButton(e)) {
                     Graph graph = Main.getGraph();
@@ -218,10 +223,13 @@ public class UIFrame extends JFrame {
                         int tolerance = Math.max(5, zoomSlider.getValue() / 10);
                         GraphNode node = graph.findNodeAt(worldPoint.getX(), worldPoint.getY(), base.getPlane(), tolerance);
                         if (node != null) {
+                            // Track that we Ctrl+pressed on this node
+                            ctrlPressedNode = node;
                             draggingNode = node;
-                            selectedElement = node;
-                            viewPort.setSelectedNodeId(node.getId());
-                            viewPort.setSelectedEdgeId(null);
+                            selectedNode = node;
+                            selectedEdge = null;
+                            viewPort.setSelectedNodePacked(node.getPacked());
+                            viewPort.setSelectedEdgeKey(-1);
                             mapView.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                             if (graphPaletteFrame != null) {
                                 graphPaletteFrame.selectNode(node);
@@ -246,7 +254,7 @@ public class UIFrame extends JFrame {
                     if (nodeWasMoved) {
                         Graph graph = Main.getGraph();
                         if (graph != null) {
-                            for (GraphEdge edge : graph.getEdgesForNode(draggingNode.getId())) {
+                            for (GraphEdge edge : graph.getEdgesForNode(draggingNode)) {
                                 graph.calculateEdgeTileTypes(edge);
                             }
                         }
@@ -256,7 +264,8 @@ public class UIFrame extends JFrame {
                         }
                     }
                     draggingNode = null;
-                    nodeWasMoved = false;
+                    // Don't clear ctrlPressedNode here - mouseClicked needs it
+                    // nodeWasMoved stays set so mouseClicked knows if drag happened
                 }
 
                 dragStart = null;
@@ -701,7 +710,7 @@ public class UIFrame extends JFrame {
                 // Cancel pending edge creation
                 if (pendingEdgeSource != null) {
                     pendingEdgeSource = null;
-                    viewPort.setPendingEdgeSourceId(null);
+                    viewPort.setPendingEdgeSourcePacked(-1);
                     update();
                 }
             }
@@ -832,10 +841,11 @@ public class UIFrame extends JFrame {
             }
             // Clear selection state
             pendingEdgeSource = null;
-            selectedElement = null;
-            viewPort.setSelectedNodeId(null);
-            viewPort.setSelectedEdgeId(null);
-            viewPort.setPendingEdgeSourceId(null);
+            selectedNode = null;
+            selectedEdge = null;
+            viewPort.setSelectedNodePacked(-1);
+            viewPort.setSelectedEdgeKey(-1);
+            viewPort.setPendingEdgeSourcePacked(-1);
         }
         update();
     }
@@ -844,16 +854,21 @@ public class UIFrame extends JFrame {
      * Called when selection changes in the palette.
      */
     private void onPaletteSelectionChanged(Object selection) {
-        selectedElement = selection;
         if (selection instanceof GraphNode) {
-            viewPort.setSelectedNodeId(((GraphNode) selection).getId());
-            viewPort.setSelectedEdgeId(null);
+            selectedNode = (GraphNode) selection;
+            selectedEdge = null;
+            viewPort.setSelectedNodePacked(selectedNode.getPacked());
+            viewPort.setSelectedEdgeKey(-1);
         } else if (selection instanceof GraphEdge) {
-            viewPort.setSelectedEdgeId(((GraphEdge) selection).getId());
-            viewPort.setSelectedNodeId(null);
+            selectedEdge = (GraphEdge) selection;
+            selectedNode = null;
+            viewPort.setSelectedEdgeKey(selectedEdge.getEdgeKey());
+            viewPort.setSelectedNodePacked(-1);
         } else {
-            viewPort.setSelectedNodeId(null);
-            viewPort.setSelectedEdgeId(null);
+            selectedNode = null;
+            selectedEdge = null;
+            viewPort.setSelectedNodePacked(-1);
+            viewPort.setSelectedEdgeKey(-1);
         }
         update();
     }
@@ -867,6 +882,13 @@ public class UIFrame extends JFrame {
         Graph graph = Main.getGraph();
         if (graph == null) return;
 
+        // If we just finished dragging a node, skip click handling
+        if (nodeWasMoved) {
+            nodeWasMoved = false;
+            ctrlPressedNode = null;
+            return;
+        }
+
         // Convert screen to world coordinates
         Point screenPoint = e.getPoint();
         WorldPoint worldPoint = screenToWorld(screenPoint);
@@ -879,43 +901,55 @@ public class UIFrame extends JFrame {
 
         if (e.isControlDown()) {
             // Ctrl+Click: Edge creation mode
-            GraphNode clickedNode = graph.findNodeAt(worldX, worldY, plane, tolerance);
+            // Use ctrlPressedNode if we clicked on a node (from mousePressed)
+            GraphNode clickedNode = ctrlPressedNode;
+            ctrlPressedNode = null;  // Clear for next interaction
+
+            // If no node was pressed, try to find one at current position
+            if (clickedNode == null) {
+                clickedNode = graph.findNodeAt(worldX, worldY, plane, tolerance);
+            }
 
             if (clickedNode != null) {
                 if (pendingEdgeSource == null) {
                     // First node selected - start edge creation
                     pendingEdgeSource = clickedNode;
-                    viewPort.setPendingEdgeSourceId(clickedNode.getId());
+                    viewPort.setPendingEdgeSourcePacked(clickedNode.getPacked());
                     update();
                 } else {
                     // Second node selected - create edge
-                    if (!pendingEdgeSource.getId().equals(clickedNode.getId())) {
-                        GraphEdge newEdge = graph.addEdge(pendingEdgeSource.getId(), clickedNode.getId());
+                    if (pendingEdgeSource.getPacked() != clickedNode.getPacked()) {
+                        GraphEdge newEdge = graph.addEdge(pendingEdgeSource, clickedNode);
                         if (newEdge != null) {
                             saveGraph();
                             if (graphPaletteFrame != null) {
                                 graphPaletteFrame.refresh();
                                 graphPaletteFrame.selectEdge(newEdge);
                             }
-                            selectedElement = newEdge;
-                            viewPort.setSelectedEdgeId(newEdge.getId());
+                            selectedEdge = newEdge;
+                            selectedNode = null;
+                            viewPort.setSelectedEdgeKey(newEdge.getEdgeKey());
+                            viewPort.setSelectedNodePacked(-1);
                         }
                     }
                     // Clear pending state
                     pendingEdgeSource = null;
-                    viewPort.setPendingEdgeSourceId(null);
+                    viewPort.setPendingEdgeSourcePacked(-1);
                     update();
                 }
             }
         } else {
+            // Clear ctrl state on regular click
+            ctrlPressedNode = null;
             // Regular click: Select existing or create new node
             GraphNode existingNode = graph.findNodeAt(worldX, worldY, plane, tolerance);
 
             if (existingNode != null) {
                 // Select existing node
-                selectedElement = existingNode;
-                viewPort.setSelectedNodeId(existingNode.getId());
-                viewPort.setSelectedEdgeId(null);
+                selectedNode = existingNode;
+                selectedEdge = null;
+                viewPort.setSelectedNodePacked(existingNode.getPacked());
+                viewPort.setSelectedEdgeKey(-1);
                 if (graphPaletteFrame != null) {
                     graphPaletteFrame.selectNode(existingNode);
                 }
@@ -923,9 +957,10 @@ public class UIFrame extends JFrame {
                 // Check if clicking near an edge
                 GraphEdge existingEdge = graph.findEdgeNear(worldX, worldY, plane, tolerance);
                 if (existingEdge != null) {
-                    selectedElement = existingEdge;
-                    viewPort.setSelectedEdgeId(existingEdge.getId());
-                    viewPort.setSelectedNodeId(null);
+                    selectedEdge = existingEdge;
+                    selectedNode = null;
+                    viewPort.setSelectedEdgeKey(existingEdge.getEdgeKey());
+                    viewPort.setSelectedNodePacked(-1);
                     if (graphPaletteFrame != null) {
                         graphPaletteFrame.selectEdge(existingEdge);
                     }
@@ -933,9 +968,10 @@ public class UIFrame extends JFrame {
                     // Create new node
                     GraphNode newNode = graph.addNode(worldX, worldY, plane);
                     saveGraph();
-                    selectedElement = newNode;
-                    viewPort.setSelectedNodeId(newNode.getId());
-                    viewPort.setSelectedEdgeId(null);
+                    selectedNode = newNode;
+                    selectedEdge = null;
+                    viewPort.setSelectedNodePacked(newNode.getPacked());
+                    viewPort.setSelectedEdgeKey(-1);
                     if (graphPaletteFrame != null) {
                         graphPaletteFrame.refresh();
                         graphPaletteFrame.selectNode(newNode);
@@ -944,7 +980,7 @@ public class UIFrame extends JFrame {
             }
             // Clear pending edge state on regular click
             pendingEdgeSource = null;
-            viewPort.setPendingEdgeSourceId(null);
+            viewPort.setPendingEdgeSourcePacked(-1);
             update();
         }
     }
@@ -974,14 +1010,14 @@ public class UIFrame extends JFrame {
         Graph graph = Main.getGraph();
         if (graph == null) return;
 
-        if (selectedElement instanceof GraphNode) {
-            graph.removeNode(((GraphNode) selectedElement).getId());
-            selectedElement = null;
-            viewPort.setSelectedNodeId(null);
-        } else if (selectedElement instanceof GraphEdge) {
-            graph.removeEdge(((GraphEdge) selectedElement).getId());
-            selectedElement = null;
-            viewPort.setSelectedEdgeId(null);
+        if (selectedNode != null) {
+            graph.removeNode(selectedNode);
+            selectedNode = null;
+            viewPort.setSelectedNodePacked(-1);
+        } else if (selectedEdge != null) {
+            graph.removeEdge(selectedEdge);
+            selectedEdge = null;
+            viewPort.setSelectedEdgeKey(-1);
         }
 
         saveGraph();

@@ -33,7 +33,6 @@ public class GraphPaletteFrame extends JFrame {
     private DefaultListModel<String> nodeListModel;
     private DefaultListModel<String> edgeListModel;
     private JLabel selectedLabel;
-    private JComboBox<String> colorComboBox;
     private JButton deleteButton;
     private JPanel nodesPanel;  // Keep reference for updating title
     private JPanel edgesPanel;  // Keep reference for updating title
@@ -46,21 +45,6 @@ public class GraphPaletteFrame extends JFrame {
     private JSpinner collisionBufferSpinner;
     private JButton pickStartButton;
     private boolean pickerMode = false;
-
-    private static final String[] COLORS = {
-            "#00FF00", // Green
-            "#FF0000", // Red
-            "#0000FF", // Blue
-            "#FFFF00", // Yellow
-            "#FF00FF", // Magenta
-            "#00FFFF", // Cyan
-            "#FFA500", // Orange
-            "#FFFFFF", // White
-    };
-
-    private static final String[] COLOR_NAMES = {
-            "Green", "Red", "Blue", "Yellow", "Magenta", "Cyan", "Orange", "White"
-    };
 
     public GraphPaletteFrame(Consumer<Object> selectionCallback, Runnable updateCallback) {
         this.selectionCallback = selectionCallback;
@@ -133,22 +117,18 @@ public class GraphPaletteFrame extends JFrame {
         mainPanel.add(Box.createVerticalStrut(10));
 
         // Selection panel
-        JPanel selectionPanel = new JPanel(new GridLayout(3, 2, 5, 5));
+        JPanel selectionPanel = new JPanel(new GridLayout(2, 2, 5, 5));
         selectionPanel.setBorder(BorderFactory.createTitledBorder("Selected"));
         selectedLabel = new JLabel("None");
-        colorComboBox = new JComboBox<>(COLOR_NAMES);
-        colorComboBox.addActionListener(e -> onColorChanged());
         deleteButton = new JButton("Delete Selected");
         deleteButton.addActionListener(e -> deleteSelected());
         deleteButton.setEnabled(false);
 
         selectionPanel.add(new JLabel("Item:"));
         selectionPanel.add(selectedLabel);
-        selectionPanel.add(new JLabel("Color:"));
-        selectionPanel.add(colorComboBox);
         selectionPanel.add(new JLabel());
         selectionPanel.add(deleteButton);
-        selectionPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+        selectionPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
         mainPanel.add(selectionPanel);
 
         mainPanel.add(Box.createVerticalStrut(10));
@@ -257,12 +237,11 @@ public class GraphPaletteFrame extends JFrame {
     private void updateSelectionPanel() {
         if (selectedNode != null) {
             selectedLabel.setText("Node (" + selectedNode.getX() + ", " + selectedNode.getY() + ", " + selectedNode.getPlane() + ")");
-            selectColorInComboBox(selectedNode.getColor());
             deleteButton.setEnabled(true);
         } else if (selectedEdge != null) {
             // Get tile type names for the edge
             StringBuilder types = new StringBuilder();
-            for (int type : selectedEdge.getTileTypes()) {
+            for (int type : selectedEdge.getTileTypesAsList()) {
                 String name = TileType.getName((byte) type);
                 if (name != null) {
                     if (types.length() > 0) types.append(", ");
@@ -270,37 +249,10 @@ public class GraphPaletteFrame extends JFrame {
                 }
             }
             selectedLabel.setText("Edge: " + (types.length() > 0 ? types.toString() : "No tile types"));
-            selectColorInComboBox(selectedEdge.getColor());
             deleteButton.setEnabled(true);
         } else {
             selectedLabel.setText("None");
             deleteButton.setEnabled(false);
-        }
-    }
-
-    private void selectColorInComboBox(String hexColor) {
-        for (int i = 0; i < COLORS.length; i++) {
-            if (COLORS[i].equalsIgnoreCase(hexColor)) {
-                colorComboBox.setSelectedIndex(i);
-                return;
-            }
-        }
-        colorComboBox.setSelectedIndex(0);
-    }
-
-    private void onColorChanged() {
-        int index = colorComboBox.getSelectedIndex();
-        if (index < 0 || index >= COLORS.length) return;
-
-        String newColor = COLORS[index];
-        if (selectedNode != null) {
-            selectedNode.setColor(newColor);
-            saveGraph();
-            updateCallback.run();
-        } else if (selectedEdge != null) {
-            selectedEdge.setColor(newColor);
-            saveGraph();
-            updateCallback.run();
         }
     }
 
@@ -309,10 +261,10 @@ public class GraphPaletteFrame extends JFrame {
         if (graph == null) return;
 
         if (selectedNode != null) {
-            graph.removeNode(selectedNode.getId());
+            graph.removeNode(selectedNode);
             selectedNode = null;
         } else if (selectedEdge != null) {
-            graph.removeEdge(selectedEdge.getId());
+            graph.removeEdge(selectedEdge);
             selectedEdge = null;
         }
 
@@ -362,8 +314,8 @@ public class GraphPaletteFrame extends JFrame {
 
         // Populate edges with tile type info
         for (GraphEdge edge : graph.getEdges()) {
-            GraphNode source = graph.getNodeById(edge.getSourceId());
-            GraphNode target = graph.getNodeById(edge.getTargetId());
+            GraphNode source = graph.getNodeByPacked(edge.getSourcePacked());
+            GraphNode target = graph.getNodeByPacked(edge.getTargetPacked());
             if (source == null || target == null) continue;
 
             // Get node indices
@@ -372,7 +324,7 @@ public class GraphPaletteFrame extends JFrame {
 
             // Get tile type names
             StringBuilder types = new StringBuilder();
-            for (int type : edge.getTileTypes()) {
+            for (int type : edge.getTileTypesAsList()) {
                 String name = TileType.getName((byte) type);
                 if (name != null) {
                     if (types.length() > 0) types.append(", ");

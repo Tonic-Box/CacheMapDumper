@@ -28,7 +28,7 @@ public class ConfigManager
         map.put("output", System.getProperty("user.home") + "/VitaX/map.dat");
         map.put("object_output", System.getProperty("user.home") + "/VitaX/objects.dat");
         map.put("tile_type_output", System.getProperty("user.home") + "/VitaX/tile_types.dat");
-        map.put("graph_output", System.getProperty("user.home") + "/VitaX/graph.json");
+        map.put("graph_output", System.getProperty("user.home") + "/VitaX/graph.dat");
         map.put("fresh_cache", true);
         map.put("bg_color", "#F8F8F8");
         map.put("grid_color", "#00FFFF");

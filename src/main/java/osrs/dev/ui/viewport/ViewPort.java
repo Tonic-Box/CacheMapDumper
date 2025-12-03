@@ -31,11 +31,18 @@ public class ViewPort
     @Setter
     private Graph graph;
     @Setter
-    private String selectedNodeId;
+    private int selectedNodePacked = -1;  // -1 means no selection
     @Setter
-    private String selectedEdgeId;
+    private long selectedEdgeKey = -1;    // -1 means no selection
     @Setter
-    private String pendingEdgeSourceId; // For edge creation highlight
+    private int pendingEdgeSourcePacked = -1; // For edge creation highlight
+
+    // Static colors for graph elements (app-managed, not stored in data)
+    private static final Color NODE_COLOR = new Color(0, 255, 0);         // Green
+    private static final Color NODE_SELECTED_COLOR = Color.WHITE;
+    private static final Color NODE_PENDING_COLOR = Color.CYAN;
+    private static final Color EDGE_COLOR = new Color(255, 255, 0);       // Yellow
+    private static final Color EDGE_SELECTED_COLOR = Color.WHITE;
 
     /**
      * Immutable map of tile types to their rendering colors.
@@ -263,8 +270,8 @@ public class ViewPort
 
         // Draw edges first (behind nodes)
         for (GraphEdge edge : graph.getEdges()) {
-            GraphNode source = graph.getNodeById(edge.getSourceId());
-            GraphNode target = graph.getNodeById(edge.getTargetId());
+            GraphNode source = graph.getNodeByPacked(edge.getSourcePacked());
+            GraphNode target = graph.getNodeByPacked(edge.getTargetPacked());
             if (source == null || target == null) continue;
             if (source.getPlane() != displayPlane) continue;
 
@@ -274,20 +281,17 @@ public class ViewPort
             // Skip if both points are off screen
             if (!isOnScreen(p1, width, height) && !isOnScreen(p2, width, height)) continue;
 
-            try {
-                g2d.setColor(Color.decode(edge.getColor()));
-            } catch (NumberFormatException e) {
-                g2d.setColor(Color.YELLOW);
-            }
+            // Use static color
+            g2d.setColor(EDGE_COLOR);
 
             // Selected edge is thicker
-            boolean isSelected = edge.getId().equals(selectedEdgeId);
+            boolean isSelected = edge.getEdgeKey() == selectedEdgeKey;
             g2d.setStroke(new BasicStroke(isSelected ? 4 : 2));
             g2d.drawLine(p1.x, p1.y, p2.x, p2.y);
 
             // Draw selection highlight
             if (isSelected) {
-                g2d.setColor(Color.WHITE);
+                g2d.setColor(EDGE_SELECTED_COLOR);
                 g2d.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[]{5, 5}, 0));
                 g2d.drawLine(p1.x, p1.y, p2.x, p2.y);
             }
@@ -303,11 +307,8 @@ public class ViewPort
             // Skip if off screen
             if (!isOnScreen(p, width, height)) continue;
 
-            try {
-                g2d.setColor(Color.decode(node.getColor()));
-            } catch (NumberFormatException e) {
-                g2d.setColor(Color.GREEN);
-            }
+            // Use static color
+            g2d.setColor(NODE_COLOR);
             g2d.fillOval(p.x - nodeRadius, p.y - nodeRadius, nodeRadius * 2, nodeRadius * 2);
 
             // Draw border
@@ -316,10 +317,11 @@ public class ViewPort
             g2d.drawOval(p.x - nodeRadius, p.y - nodeRadius, nodeRadius * 2, nodeRadius * 2);
 
             // Selection highlight (white ring)
-            boolean isSelected = node.getId().equals(selectedNodeId);
-            boolean isPendingEdgeSource = node.getId().equals(pendingEdgeSourceId);
+            int nodePacked = node.getPacked();
+            boolean isSelected = nodePacked == selectedNodePacked;
+            boolean isPendingEdgeSource = nodePacked == pendingEdgeSourcePacked;
             if (isSelected || isPendingEdgeSource) {
-                g2d.setColor(isPendingEdgeSource ? Color.CYAN : Color.WHITE);
+                g2d.setColor(isPendingEdgeSource ? NODE_PENDING_COLOR : NODE_SELECTED_COLOR);
                 g2d.setStroke(new BasicStroke(2));
                 g2d.drawOval(p.x - nodeRadius - 3, p.y - nodeRadius - 3,
                         (nodeRadius + 3) * 2, (nodeRadius + 3) * 2);

@@ -6,7 +6,6 @@ import osrs.dev.reader.TileTypeMap;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.Map;
 
 /**
  * Generates a sparse navigation web across all connected water.
@@ -23,8 +22,9 @@ public class WebGenerator {
 
     // Configuration
     private int nodeSpacing = 50;
-    private int maxNeighbors = 6;
+    private int maxNeighbors = 8;       // More connections per node
     private int collisionBuffer = 5;
+    private double maxEdgeDistanceMultiplier = 3.0;  // Connect nodes up to 3x spacing apart
 
     private static final int PROGRESS_INTERVAL = 50000;
 
@@ -105,7 +105,7 @@ public class WebGenerator {
         visitedTiles.add(packCoords(seedX, seedY));
 
         // Place first node at seed
-        GraphNode seedNode = new GraphNode(UUID.randomUUID().toString(), seedX, seedY, plane);
+        GraphNode seedNode = new GraphNode(seedX, seedY, plane);
         nodes.add(seedNode);
         nodeGridCells.add(getGridCell(seedX, seedY));
 
@@ -139,7 +139,7 @@ public class WebGenerator {
             if (cancelled) break;
 
             int[] candidate = entry.getValue();
-            GraphNode node = new GraphNode(UUID.randomUUID().toString(), candidate[0], candidate[1], plane);
+            GraphNode node = new GraphNode(candidate[0], candidate[1], plane);
             nodes.add(node);
 
             processed++;
@@ -196,9 +196,10 @@ public class WebGenerator {
     /**
      * Calculates minimum distance to collision from a point.
      * Returns the buffer distance (capped at collisionBuffer).
+     * Checks for non-water tiles and tiles that block ALL directions (full collision).
      */
     private int calculateCollisionBuffer(int x, int y) {
-        if (collision == null || collisionBuffer == 0) return collisionBuffer;
+        if (collisionBuffer == 0) return collisionBuffer;
 
         // Check expanding rings around the point
         for (int dist = 1; dist <= collisionBuffer; dist++) {
@@ -211,8 +212,8 @@ public class WebGenerator {
                     int checkX = x + dx;
                     int checkY = y + dy;
 
-                    // Check if there's collision blocking movement to/from this tile
-                    if (hasNearbyCollision(checkX, checkY)) {
+                    // Check if this tile is a collision obstacle
+                    if (isCollisionTile(checkX, checkY)) {
                         return dist - 1;  // Return distance to nearest collision minus 1
                     }
                 }
@@ -223,16 +224,30 @@ public class WebGenerator {
     }
 
     /**
-     * Checks if a tile has collision blocking any cardinal direction.
+     * Checks if a tile is a collision obstacle (non-water or blocks all movement).
+     * This is different from edge-of-water tiles which may block some directions.
      */
-    private boolean hasNearbyCollision(int x, int y) {
-        if (collision == null) return false;
+    private boolean isCollisionTile(int x, int y) {
+        // Check if it's not a water tile
+        if (tileTypeMap != null && tileTypeMap.getTileType(x, y, plane) == 0) {
+            return true;  // Non-water tile is considered collision
+        }
 
-        // Check if any direction is blocked
-        return collision.n((short) x, (short) y, (byte) plane) == 0 ||
-               collision.s((short) x, (short) y, (byte) plane) == 0 ||
-               collision.e((short) x, (short) y, (byte) plane) == 0 ||
-               collision.w((short) x, (short) y, (byte) plane) == 0;
+        // Check if it's a fully blocked tile (blocks all 4 directions)
+        if (collision != null) {
+            boolean blocksN = collision.n((short) x, (short) y, (byte) plane) == 0;
+            boolean blocksS = collision.s((short) x, (short) y, (byte) plane) == 0;
+            boolean blocksE = collision.e((short) x, (short) y, (byte) plane) == 0;
+            boolean blocksW = collision.w((short) x, (short) y, (byte) plane) == 0;
+
+            // Only consider it collision if it blocks most directions (3+ blocked = obstacle)
+            int blockedCount = (blocksN ? 1 : 0) + (blocksS ? 1 : 0) + (blocksE ? 1 : 0) + (blocksW ? 1 : 0);
+            if (blockedCount >= 3) {
+                return true;  // Likely an obstacle (rock, etc.) in the water
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -245,57 +260,79 @@ public class WebGenerator {
     }
 
     /**
-     * Generates edges using K-nearest neighbors.
-     * Only creates edges that are at least 40% over water tiles.
+     * Generates edges by connecting nearby nodes that pass validation.
+     * More aggressive cross-connection while respecting water/path checks.
      */
     private List<GraphEdge> generateEdges(List<GraphNode> nodes) {
         List<GraphEdge> edges = new ArrayList<>();
-        Set<String> edgeSet = new HashSet<>(); // Prevent duplicates
+        Set<Long> edgeSet = new HashSet<>(); // Prevent duplicates using packed edge keys
+
+        double maxEdgeDistance = nodeSpacing * maxEdgeDistanceMultiplier;
 
         int processed = 0;
         for (GraphNode node : nodes) {
             if (cancelled) break;
 
-            // Find K nearest neighbors within reasonable distance
-            List<GraphNode> neighbors = findNearestNeighbors(node, nodes, maxNeighbors * 2);
+            // Find all neighbors within max edge distance
+            List<GraphNode> neighbors = findNeighborsWithinDistance(node, nodes, maxEdgeDistance);
 
             int connectedCount = 0;
             for (GraphNode neighbor : neighbors) {
-                if (connectedCount >= maxNeighbors) break;
+                // Soft cap on connections per node, but don't hard stop
+                // Allow more edges for nodes that have good connections available
+                if (connectedCount >= maxNeighbors) {
+                    // Still allow very close nodes (within 1.5x spacing)
+                    double dist = distance(node, neighbor);
+                    if (dist > nodeSpacing * 1.5) continue;
+                }
+
+                // Create edge (constructor normalizes order)
+                GraphEdge edge = new GraphEdge(node.getPacked(), neighbor.getPacked());
 
                 // Skip if edge already exists
-                String edgeKey = makeEdgeKey(node.getId(), neighbor.getId());
-                if (edgeSet.contains(edgeKey)) continue;
+                if (edgeSet.contains(edge.getEdgeKey())) continue;
 
-                // Only connect nodes within reasonable distance (2x spacing)
-                double dist = distance(node, neighbor);
-                if (dist > nodeSpacing * 2.5) continue;
-
-                // Validate edge has at least 40% water tiles
+                // Validate edge (water percentage + BFS path check)
                 if (!isValidEdge(node, neighbor)) continue;
 
-                GraphEdge edge = new GraphEdge(
-                        UUID.randomUUID().toString(),
-                        node.getId(),
-                        neighbor.getId()
-                );
-
                 // Calculate tile types along edge
-                edge.setTileTypes(calculateTileTypes(node, neighbor));
+                edge.setTileTypesFromList(calculateTileTypes(node, neighbor));
 
                 edges.add(edge);
-                edgeSet.add(edgeKey);
+                edgeSet.add(edge.getEdgeKey());
                 connectedCount++;
             }
 
             processed++;
             if (processed % 50 == 0) {
-                reportProgress(70 + (int) (30.0 * processed / nodes.size()),
+                reportProgress(60 + (int) (40.0 * processed / nodes.size()),
                         "Generating Edges", "Created " + edges.size() + " edges...");
             }
         }
 
         return edges;
+    }
+
+    /**
+     * Finds all neighbors within a given distance, sorted by distance.
+     */
+    private List<GraphNode> findNeighborsWithinDistance(GraphNode node, List<GraphNode> allNodes, double maxDist) {
+        List<GraphNode> neighbors = new ArrayList<>();
+
+        for (GraphNode other : allNodes) {
+            if (other == node) continue;
+            if (other.getPlane() != node.getPlane()) continue;
+
+            double dist = distance(node, other);
+            if (dist <= maxDist) {
+                neighbors.add(other);
+            }
+        }
+
+        // Sort by distance (closest first)
+        neighbors.sort((a, b) -> Double.compare(distance(node, a), distance(node, b)));
+
+        return neighbors;
     }
 
     /**
@@ -416,22 +453,6 @@ public class WebGenerator {
     }
 
     /**
-     * Finds the K nearest neighbors to a node.
-     */
-    private List<GraphNode> findNearestNeighbors(GraphNode node, List<GraphNode> allNodes, int k) {
-        List<GraphNode> neighbors = new ArrayList<>(allNodes);
-        neighbors.remove(node);
-
-        neighbors.sort((a, b) -> {
-            double distA = Math.sqrt(Math.pow(a.getX() - node.getX(), 2) + Math.pow(a.getY() - node.getY(), 2));
-            double distB = Math.sqrt(Math.pow(b.getX() - node.getX(), 2) + Math.pow(b.getY() - node.getY(), 2));
-            return Double.compare(distA, distB);
-        });
-
-        return neighbors.subList(0, Math.min(k, neighbors.size()));
-    }
-
-    /**
      * Calculates tile types along an edge path.
      */
     private List<Integer> calculateTileTypes(GraphNode a, GraphNode b) {
@@ -456,10 +477,6 @@ public class WebGenerator {
         }
 
         return new ArrayList<>(types);
-    }
-
-    private String makeEdgeKey(String id1, String id2) {
-        return id1.compareTo(id2) < 0 ? id1 + "-" + id2 : id2 + "-" + id1;
     }
 
     private long packCoords(int x, int y) {
