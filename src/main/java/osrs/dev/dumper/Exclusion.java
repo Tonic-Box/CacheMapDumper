@@ -236,6 +236,16 @@ public enum Exclusion
     ARCH_1678(1678, CollisionFlags.TILE_DEFAULT),
     DOOR_11765(11765),
     ARCH_17361(17361, CollisionFlags.TILE_DEFAULT),
+    TENT_ENTRANCE_1676(1676, CollisionFlags.TILE_DEFAULT),
+    GATE_24560(24560),
+    GATE_24561(24561),
+    GATE_5170(5170, CollisionFlags.TILE_DEFAULT),
+    WALL_6901(6091, CollisionFlags.TILE_DEFAULT),
+    WALL_6906(6906, CollisionFlags.TILE_DEFAULT),
+    WALL_1677(1677, CollisionFlags.TILE_DEFAULT),
+    WALL_6270(6270, CollisionFlags.TILE_DEFAULT),
+    DOOR_34932(34932, CollisionFlags.TILE_BLOCKED),
+    GATE_1548(1548, CollisionFlags.TILE_DEFAULT),
 
     ;
 
