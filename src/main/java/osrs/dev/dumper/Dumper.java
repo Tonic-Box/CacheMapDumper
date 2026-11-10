@@ -3,6 +3,7 @@ package osrs.dev.dumper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
+import net.runelite.cache.EntityOpsDefinition;
 import net.runelite.cache.ObjectManager;
 import net.runelite.cache.OverlayManager;
 import net.runelite.cache.definitions.ObjectDefinition;
@@ -86,7 +87,7 @@ public class Dumper
     private ObjectDefinition findObject(int id)
     {
         return objectManager.getObject(id);
-    }
+    } //33, 60
 
     /**
      * Dumps the collision data.
@@ -246,6 +247,12 @@ public class Dumper
                             continue;
                         }
 
+                        List<EntityOpsDefinition.Op> ops = object.getOps().getOps();
+                        if(ops.isEmpty() || ops.get(0) == null)
+                        {
+                            block = true;
+                        }
+
                         int sizeX = (orientation == 1 || orientation == 3) ? object.getSizeY() : object.getSizeX();
                         int sizeY = (orientation == 1 || orientation == 3) ? object.getSizeX() : object.getSizeY();
 
@@ -299,8 +306,13 @@ public class Dumper
                             collisionMapWriter.fullBlocking((short) regionX, (short) regionY, (byte) z, block);
                         }
 
+                        if (type == 22 && object.getInteractType() == 1)
+                        {
+                            collisionMapWriter.fullBlocking((short) regionX, (short) regionY, (byte) z, block);
+                        }
+
                         //objects
-                        if (type == 22 || (type >= 9 && type <= 11) || (type >= 12 && type <= 21))
+                        if ((type >= 9 && type <= 11) || (type >= 12 && type <= 21))
                         {
                             for (int x = 0; x < sizeX; x++)
                             {
