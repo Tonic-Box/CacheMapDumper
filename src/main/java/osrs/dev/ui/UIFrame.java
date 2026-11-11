@@ -508,12 +508,11 @@ public class UIFrame extends JFrame {
     private JButton createUpdateAllButton() {
         updateAllButton = new JButton("Update Maps");
         updateAllButton.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> {
-                updateAllButton.setText("Updating...");
-                updateAllButton.setEnabled(false);
-                revalidate();
-                repaint();
-            });
+            if (!updateAllButton.isEnabled()) {
+                return;
+            }
+            updateAllButton.setText("Updating...");
+            updateAllButton.setEnabled(false);
 
             // Save all paths to config
             Main.getConfigManager().setOutputPath(pathField.getText());
