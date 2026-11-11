@@ -17,6 +17,7 @@ import net.runelite.cache.region.RegionLoader;
 import net.runelite.cache.util.KeyProvider;
 import net.runelite.cache.util.XteaKeyManager;
 import osrs.dev.dumper.openrs2.OpenRS2;
+import osrs.dev.dumper.settings.SettingsDumper;
 import osrs.dev.util.OptionsParser;
 import osrs.dev.util.ProgressBar;
 
@@ -170,6 +171,21 @@ public class Dumper
             // Save tile type map
             dumper.tileTypeMapWriter.save(OUTPUT_TILE_TYPE_MAP.getPath());
             System.out.println("Wrote tile type map to " + OUTPUT_TILE_TYPE_MAP);
+
+            if (optionsParser.getSettingsPath() != null)
+            {
+                File settingsFile = new File(optionsParser.getSettingsPath());
+                try
+                {
+                    SettingsDumper.write(store, settingsFile);
+                    System.out.println("Wrote settings constants to " + settingsFile);
+                }
+                catch (IOException | RuntimeException e)
+                {
+                    System.err.println("Error writing settings constants");
+                    e.printStackTrace();
+                }
+            }
         }
         catch (ExecutionException | InterruptedException e)
         {

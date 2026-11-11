@@ -29,7 +29,8 @@ public class UIFrame extends JFrame {
     private JTextField pathField;
     private JTextField objectPathField;
     private JTextField tileTypePathField;
-    private JCheckBox downloadCacheCheckBox;
+    private JTextField settingsPathField;
+    private final JCheckBox downloadCacheCheckBox;
     private final ViewPort viewPort;
     private final WorldPoint base = new WorldPoint(3207, 3213, 0);
     private final WorldPoint center = new WorldPoint(0,0,0);
@@ -180,6 +181,7 @@ public class UIFrame extends JFrame {
         tabbedPane.addTab("Collision", createCollisionPathPanel());
         tabbedPane.addTab("Objects", createObjectPathPanel());
         tabbedPane.addTab("Tile Types", createTileTypePathPanel());
+        tabbedPane.addTab("Settings", createSettingsPathPanel());
         bottomPanel.add(tabbedPane, BorderLayout.CENTER);
 
         add(bottomPanel, BorderLayout.SOUTH);
@@ -488,6 +490,17 @@ public class UIFrame extends JFrame {
         return panel;
     }
 
+    private JPanel createSettingsPathPanel() {
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        JPanel pathRow = new JPanel(new BorderLayout(5, 0));
+        pathRow.add(new JLabel("Path:"), BorderLayout.WEST);
+        settingsPathField = new JTextField(Main.getConfigManager().settingsOutputPath());
+        pathRow.add(settingsPathField, BorderLayout.CENTER);
+        panel.add(pathRow, BorderLayout.CENTER);
+        return panel;
+    }
+
     /**
      * Creates the single update button for dumping all maps.
      */
@@ -506,6 +519,7 @@ public class UIFrame extends JFrame {
             Main.getConfigManager().setOutputPath(pathField.getText());
             Main.getConfigManager().setObjectOutputPath(objectPathField.getText());
             Main.getConfigManager().setTileTypeOutputPath(tileTypePathField.getText());
+            Main.getConfigManager().setSettingsOutputPath(settingsPathField.getText());
 
             List<String> options = new ArrayList<>();
             options.add("-path");
@@ -514,6 +528,8 @@ public class UIFrame extends JFrame {
             options.add(objectPathField.getText());
             options.add("-tileTypePath");
             options.add(tileTypePathField.getText());
+            options.add("-settingsPath");
+            options.add(settingsPathField.getText());
             options.add("-fresh");
             options.add(downloadCacheCheckBox.isSelected() ? "y" : "n");
 
@@ -795,11 +811,7 @@ public class UIFrame extends JFrame {
         byte tileType = Main.getTileTypeMap().getTileType(worldX, worldY, base.getPlane());
         String typeName = TileType.getName(tileType);
 
-        if (typeName != null) {
-            mapView.setToolTipText(typeName);
-        } else {
-            mapView.setToolTipText(null);
-        }
+        mapView.setToolTipText(typeName);
     }
 
     // ==================== Graph Editing Methods ====================
